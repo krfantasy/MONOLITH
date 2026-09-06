@@ -107,8 +107,8 @@ DES["N"] = (620, [R(0, 0, 260, 700), R(360, 0, 620, 700),
                   Q((260, 700), (620, 340), (620, 120), (260, 480))])
 DES["O"] = (620, [R(0, 0, 620, 700), Cc(230, 240, 390, 460)])
 DES["P"] = (620, [R(0, 0, 260, 700), R(260, 300, 620, 700), Cc(360, 420, 500, 580)])
-DES["Q"] = (620, [Q((0, 0), (440, 0), (620, 180), (620, 700), (0, 700)),
-                  Q((500, 0), (620, 0), (620, 120)),
+DES["Q"] = (620, [Q((0, 0), (340, 0), (620, 280), (620, 700), (0, 700)),
+                  Q((400, 0), (620, 0), (620, 220)),
                   Cc(230, 300, 390, 480)])
 DES["R"] = (620, [R(0, 0, 260, 700), R(260, 300, 620, 700), Cc(360, 420, 500, 580),
                   Q((260, 300), (620, 0), (620, 180), (260, 480))])
@@ -197,16 +197,6 @@ DES["space"] = (240, [])
 
 KEEP = set(DES.keys()) | set("abcdefghijklmnopqrstuvwxyz")
 
-# drop anything outside the requested set
-removed = 0
-for g in list(F.glyphs):
-    if g.name not in KEEP:
-        if remove_glyph(g):
-            removed += 1
-        else:
-            print("could not remove", g.name)
-print("removed glyphs:", removed)
-
 
 def master_layer(g):
     for l in g.layers:
@@ -240,6 +230,17 @@ def remove_glyph(g):
     except Exception:
         pass
     return False
+
+
+# drop anything outside the requested set
+removed = 0
+for g in list(F.glyphs):
+    if g.name not in KEEP:
+        if remove_glyph(g):
+            removed += 1
+        else:
+            print("could not remove", g.name)
+print("removed glyphs:", removed)
 
 
 def clear_shapes(l):
