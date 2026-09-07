@@ -12,7 +12,7 @@ want them to breathe.
 `A–Z`, `a–z` (uppercase forms for both cases), `0–9` (the zero carries an
 attached diagonal slash to stay distinct from `O` at small sizes), and full
 printable ASCII punctuation & symbols plus en/em dashes — 97 glyphs, plus a
-`.spaced` alternate for every one of them.
+`.spaced` alternate for every glyph except the space.
 
 ## Install
 
