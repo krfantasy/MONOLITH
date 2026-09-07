@@ -1,0 +1,31 @@
+[project]
+name = "monolith"
+version = "0.1.0"
+description = "MONOLITH - a brutalist extra-bold block font, plus its generator tooling"
+requires-python = ">=3.13"
+dependencies = [
+    "fonttools>=4.64",
+    "pillow>=11",
+]
+
+[project.scripts]
+monolith-specimen = "monolith.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "ruff",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/monolith"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
