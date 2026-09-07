@@ -82,9 +82,9 @@ def setup_font(F: Any, master: Any) -> None:
 
 
 def master_layer(F: Any, master: Any, g: GSGlyph) -> GSLayer:
-    for l in g.layers:
-        if l.associatedMasterId == master.id:
-            return l
+    for ly in g.layers:
+        if ly.associatedMasterId == master.id:
+            return ly
     if len(g.layers):
         return g.layers[0]
     nl = GSLayer()
@@ -312,8 +312,8 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
     if w_wall != 1 or w_hole != 0:
         flipped = 0
         for g in F.glyphs:
-            for l in g.layers:
-                for p in l.paths:
+            for ly in g.layers:
+                for p in ly.paths:
                     p.reverse()
                     flipped += 1
         print("REVERSED %s paths (direction fix)" % flipped)
