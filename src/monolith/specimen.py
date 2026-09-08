@@ -172,19 +172,22 @@ def main(
     r = SpecimenRenderer(font_path)
     rows = build_rows(r.cmap)
     out_dir.mkdir(parents=True, exist_ok=True)
-    # shipped look: default advances + GPOS kern, exactly as apps lay it out
+    # shipped look: default advances, exactly as apps lay it out (kern-free
+    # block cut)
     r.render(SHOWCASE, rows, 0.22, 0.34, out_dir / "specimen.png")
     # loose look: ss01 — the font's own .spaced alternates and their advances
     r.render(SHOWCASE, rows, 0.22, 0.34, out_dir / "specimen-spaced.png", features={"ss01": True})
-    if spac is not None:
-        # SPAC-axis variant: the variable font shaped at `spac`
-        vpath = Path(variable_font_path) if variable_font_path else DEFAULT_VARIABLE_FONT
-        if not vpath.exists():
+    vpath = Path(variable_font_path) if variable_font_path else DEFAULT_VARIABLE_FONT
+    if not vpath.exists():
+        if spac is not None:
             raise SystemExit(
                 f"variable font not found: {vpath}\n"
-                "Export it from Glyphs: File > Export > Variable (see README)"
+                "Export it from Glyphs and run monolith.kern_axis (see README)"
             )
-        rv = SpecimenRenderer(vpath)
+        return
+    rv = SpecimenRenderer(vpath)
+    if spac is not None:
+        # SPAC-axis variant: the variable font shaped at `spac`
         rv.render(
             SHOWCASE,
             rows,
@@ -193,3 +196,12 @@ def main(
             out_dir / f"specimen-spac{spac}.png",
             variations={"SPAC": spac},
         )
+    # kerned look: the same variable font with the KERN axis maxed
+    rv.render(
+        SHOWCASE,
+        rows,
+        0.22,
+        0.34,
+        out_dir / "specimen-kern100.png",
+        variations={"KERN": 100},
+    )

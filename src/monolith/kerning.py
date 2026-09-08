@@ -8,7 +8,8 @@ and the right glyph's leftmost ink once both are placed at the default
 advance; positive means air, TIGHT_OVERLAP means the standard 30-unit
 fusion. KERN_PAIRS is computed at import from the rule below (run
 `python -m monolith.kerning` to print the table) and is the single source of
-truth for build.py (Glyphs kerning) and variable.py (GPOS injection).
+truth for build.py (native Glyphs kerning, shown in the Kerning window)
+and kern_axis.py (the variable font's KERN axis GPOS VariationStore).
 """
 
 import sys

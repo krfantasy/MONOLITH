@@ -1,12 +1,13 @@
-"""Read-side helpers for the SPAC variable font.
+"""Read-side helpers for the MONOLITH variable font (SPAC + KERN axes).
 
-Generation is Glyphs-only: build.py (run in the Macro Panel) sets up the
-SPAC axis with two masters — SPAC 0 with the shipped tight advances, SPAC
-130 with every advance wider by 130 — plus the `kern` feature, and the
-variable font is exported from those masters (macro_bootstrap tries
-instance.generate(Format=VARIABLE); otherwise File > Export > Variable).
-Outlines never vary across the axis, so it lives entirely in fvar + HVAR.
-This module only reads and pins the exported font, for specimens and tests.
+The .glyphs source carries the SPAC masters (SPAC 0 tight advances, SPAC
+130 with every advance wider by 130) and native per-master kerning — the
+742 seam-metric pairs visible in Glyphs' Kerning window. The variable
+font exported from it is post-processed by monolith.kern_axis, which adds
+the KERN axis (0-100, default 0 = kerning off) as a GPOS VariationStore;
+the ExtraBold static is exported unkerned via its "Remove Features: kern"
+instance parameter. This module only reads and pins the exported fonts,
+for specimens and tests.
 """
 
 from pathlib import Path
@@ -30,6 +31,11 @@ INSTANCES: tuple[tuple[int, str], ...] = (
     (TOUCHING, "Touching"),
     (SPAC_MAX, "Spaced"),
 )
+
+KERN_AXIS_TAG = "KERN"
+KERN_MIN = 0
+KERN_DEFAULT = 0  # kerning off unless a layout engine asks for it
+KERN_MAX = 100
 
 
 def instance_at_spac(font_path: str | Path, spac: int) -> TTFont:

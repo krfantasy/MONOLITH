@@ -1,0 +1,275 @@
+"""Add the KERN axis (0-100, default 0) to the Glyphs-exported variable font.
+
+Glyphs 3.5 cannot export kerning as a variation axis: its "VAR with KERN"
+export tab is a plugin that does not work, and feature code cannot
+interpolate GPOS values across masters. This module post-processes the
+raw variable font (fonts/MONOLITH-Variable-raw.ttf, exported from Glyphs
+with SPAC masters only) into the shipped variable font
+(fonts/MONOLITH-Variable.ttf):
+
+- fvar gains a KERN axis: min 0, DEFAULT 0 (kern off unless asked), max 100.
+- GDEF gains an ItemVariationStore with one region (KERN peak 100) and one
+  delta per seam-metric pair from monolith.kerning.KERN_PAIRS — the same
+  742 values shown in the Glyphs Kerning window and mirrored on both SPAC
+  masters.
+- A GPOS `kern` feature (default-on in every shaper) holds PairPos records
+  whose XAdvance is 0 plus a VariationIndex device into that store, so a
+  KERN coordinate of t applies each kern scaled by t/100.
+
+Run after the Glyphs export: `python -m monolith.kern_axis`.
+"""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+from typing import Any
+
+from fontTools.ttLib import TTFont, newTable
+from fontTools.ttLib.tables import otTables as ot
+from fontTools.varLib.builder import buildVarData, buildVarRegionList, buildVarStore
+
+from monolith.kerning import KERN_PAIRS
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+RAW_VF = REPO_ROOT / "fonts" / "MONOLITH-Variable-raw.ttf"
+SHIPPED_VF = REPO_ROOT / "fonts" / "MONOLITH-Variable.ttf"
+
+KERN_MIN = 0
+KERN_DEFAULT = 0
+KERN_MAX = 100
+KERN_NAME = "Kern"
+
+
+def _new_name_id(font: TTFont) -> int:
+    name = font["name"]
+    used = {rec.nameID for rec in name.names}
+    return max(used) + 1
+
+
+def _add_name(font: TTFont, text: str, name_id: int) -> None:
+    name = font["name"]
+    name.setName(text, name_id, 3, 1, 0x409)
+    name.setName(text, name_id, 1, 0, 0)
+
+
+def _add_kern_axis_to_fvar(font: TTFont) -> None:
+    fvar = font["fvar"]
+    if any(a.axisTag == "KERN" for a in fvar.axes):
+        print("fvar already has KERN")
+        return
+    name_id = _new_name_id(font)
+    _add_name(font, KERN_NAME, name_id)
+    axis = type(fvar.axes[0])()  # must be the _f_v_a_r.Axis struct, not otTables.Axis
+    axis.axisTag = "KERN"
+    axis.axisNameID = name_id
+    axis.flags = 0
+    axis.minValue = KERN_MIN
+    axis.defaultValue = KERN_DEFAULT
+    axis.maxValue = KERN_MAX
+    fvar.axes.append(axis)
+    for inst in fvar.instances:
+        inst.coordinates["KERN"] = float(KERN_DEFAULT)
+    print(
+        "fvar: KERN axis added (%d-%d-%d), %d instances pinned to default"
+        % (KERN_MIN, KERN_DEFAULT, KERN_MAX, len(fvar.instances))
+    )
+
+
+def _add_kern_axis_to_stat(font: TTFont, axis_name_id: int) -> None:
+    stat_table = font.get("STAT")
+    if stat_table is None:
+        print("no STAT table, skipping STAT update")
+        return
+    st = stat_table.table
+    if any(a.AxisTag == "KERN" for a in st.DesignAxisRecord.Axis):
+        print("STAT already has KERN")
+        return
+    axis_index = len(st.DesignAxisRecord.Axis)
+    rec = ot.AxisRecord()
+    rec.AxisTag = "KERN"
+    rec.AxisNameID = axis_name_id
+    rec.AxisOrdering = axis_index
+    st.DesignAxisRecord.Axis.append(rec)
+    if st.AxisValueArray is None:
+        st.AxisValueArray = ot.AxisValueArray()
+        st.AxisValueArray.AxisValue = []
+    unkerned_name_id = _new_name_id(font)
+    _add_name(font, "Unkerned", unkerned_name_id)
+    kerned_name_id = _new_name_id(font)
+    _add_name(font, "Kerned", kerned_name_id)
+    for value, name_id, flags in (
+        (float(KERN_DEFAULT), unkerned_name_id, 0x2),
+        (float(KERN_MAX), kerned_name_id, 0x0),
+    ):
+        av = ot.AxisValue()
+        av.Format = 1
+        av.AxisIndex = axis_index
+        av.Flags = flags
+        av.ValueNameID = name_id
+        av.Value = value
+        st.AxisValueArray.AxisValue.append(av)
+    print("STAT: KERN axis record + Unkerned/Kerned values added")
+
+
+def _build_variation_store(font: TTFont) -> ot.ItemVariationStore:
+    """One region (KERN peak at max), one delta item per kern pair.
+
+    axisTags must list every fvar axis in fvar order — each VarRegion
+    carries a (0,0,0) entry for SPAC so only KERN drives the deltas.
+    """
+    axis_tags = [a.axisTag for a in font["fvar"].axes]
+    # region coords are NORMALIZED: KERN 100 == +1.0 (axis default 0 == 0.0)
+    region_list = buildVarRegionList([{"KERN": (0.0, 1.0, 1.0)}], axis_tags)
+    deltas = sorted(KERN_PAIRS.items())
+    var_data = buildVarData([0], [[v] for _, v in deltas], optimize=False)
+    return buildVarStore(region_list, [var_data])
+
+
+def _variation_device(outer: int, inner: int) -> ot.Device:
+    d = ot.Device()
+    d.StartSize = outer
+    d.EndSize = inner
+    d.DeltaFormat = 0x8000
+    return d
+
+
+def _build_pair_pos(font: TTFont) -> ot.PairPos:
+    """PairPos Format 1: XAdvance 0 + VariationIndex per pair (delta=full)."""
+    glyph_order = font.getGlyphOrder()
+    order = {name: i for i, name in enumerate(glyph_order)}
+
+    lefts: dict[str, list[tuple[str, int]]] = {}
+    for inner, ((lg, rg), _v) in enumerate(sorted(KERN_PAIRS.items())):
+        lefts.setdefault(lg, []).append((rg, inner))
+
+    lefts_sorted = sorted(lefts, key=lambda g: order[g])
+    coverage = ot.Coverage()
+    coverage.glyphs = lefts_sorted
+
+    pair_sets: list[ot.PairSet] = []
+    for lg in lefts_sorted:
+        pairs = sorted(lefts[lg], key=lambda t: order[t[0]])
+        records: list[ot.PairValueRecord] = []
+        for rg, inner in pairs:
+            pvr = ot.PairValueRecord()
+            pvr.SecondGlyph = rg
+            vr = ot.ValueRecord()
+            vr.XAdvance = 0
+            vr.XAdvDevice = _variation_device(0, inner)  # fontTools field name
+            pvr.Value1 = vr
+            records.append(pvr)
+        ps = ot.PairSet()
+        ps.PairValueRecord = records
+        pair_sets.append(ps)
+
+    pp = ot.PairPos()
+    pp.Format = 1
+    pp.Coverage = coverage
+    pp.ValueFormat1 = 0x0004 | 0x0040  # X_ADVANCE + X_ADVANCE_DEVICE
+    pp.ValueFormat2 = 0x0000
+    pp.PairSet = pair_sets
+    return pp
+
+
+def _add_gpos(font: TTFont, pair_pos: ot.PairPos) -> None:
+    gpos_table = newTable("GPOS")
+    gpos = ot.GPOS()
+    gpos.Version = 0x00010000
+
+    lang_sys = ot.LangSys()
+    lang_sys.LookupOrder = None
+    lang_sys.ReqFeatureIndex = 0xFFFF
+    lang_sys.FeatureIndex = [0]
+
+    script = ot.Script()
+    script.DefaultLangSys = lang_sys
+    script.ScriptLangSys = []
+    srec = ot.ScriptRecord()
+    srec.ScriptTag = "DFLT"
+    srec.Script = script
+
+    script_list = ot.ScriptList()
+    script_list.ScriptRecord = [srec]
+
+    feature = ot.Feature()
+    feature.FeatureParams = None
+    feature.LookupListIndex = [0]
+    frec = ot.FeatureRecord()
+    frec.FeatureTag = "kern"
+    frec.Feature = feature
+    feature_list = ot.FeatureList()
+    feature_list.FeatureRecord = [frec]
+
+    lookup = ot.Lookup()
+    lookup.LookupType = 2
+    lookup.LookupFlag = 0
+    lookup.SubTable = [pair_pos]
+    lookup_list = ot.LookupList()
+    lookup_list.Lookup = [lookup]
+
+    gpos.ScriptList = script_list
+    gpos.FeatureList = feature_list
+    gpos.LookupList = lookup_list
+    gpos_table.table = gpos
+    font["GPOS"] = gpos_table
+    print("GPOS: DFLT kern lookup with %d VariationIndex pairs" % len(KERN_PAIRS))
+
+
+def _attach_store_to_gdef(font: TTFont, store: ot.ItemVariationStore) -> None:
+    # A fresh ot.GDEF is required: reusing the decompiled container trips
+    # fontTools' propagated-count assert when the VarStore is attached to it.
+    gdef_table = font.get("GDEF")
+    old = gdef_table.table if gdef_table is not None else None
+    gdef = ot.GDEF()
+    gdef.Version = 0x00010003
+    for field in (
+        "GlyphClassDef",
+        "AttachList",
+        "LigCaretList",
+        "MarkAttachClassDef",
+        "MarkGlyphSetsDef",
+    ):
+        setattr(gdef, field, getattr(old, field, None) if old is not None else None)
+    gdef.VarStore = store  # fontTools' GDEF attr for ItemVariationStore
+    gdef_table = newTable("GDEF")
+    gdef_table.table = gdef
+    font["GDEF"] = gdef_table
+    print("GDEF: ItemVariationStore attached (%d delta items)" % len(KERN_PAIRS))
+
+
+def build_kern_axis(src: str | Path = RAW_VF, out: str | Path = SHIPPED_VF) -> TTFont:
+    """Raw Glyphs VF -> variable font with the KERN 0-100 axis. Saved to out."""
+    font = TTFont(str(src))
+    # touch gvar BEFORE the fvar edit: Glyphs' gvar header says axisCount=1,
+    # and decompiling it after fvar grows a second axis trips fontTools'
+    # cross-check. Decompiled early, it recompiles at save time with both
+    # axes (tuples get a (0,0,0) KERN entry — outlines ignore kerning).
+    _ = font["gvar"]
+    _add_kern_axis_to_fvar(font)
+    stat_table = font.get("STAT")
+    if stat_table is not None:
+        axis_name_id = _new_name_id(font)
+        _add_name(font, KERN_NAME, axis_name_id)
+        _add_kern_axis_to_stat(font, axis_name_id)
+    store = _build_variation_store(font)
+    _attach_store_to_gdef(font, store)
+    pair_pos = _build_pair_pos(font)
+    _add_gpos(font, pair_pos)
+    font.save(str(out))
+    print("saved", out)
+    return font
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--src", type=Path, default=RAW_VF, help="raw Glyphs VF input")
+    parser.add_argument("--out", type=Path, default=SHIPPED_VF, help="shipped VF output")
+    args: argparse.Namespace = parser.parse_args()
+    font: Any = build_kern_axis(args.src, args.out)
+    axes = [(a.axisTag, a.minValue, a.defaultValue, a.maxValue) for a in font["fvar"].axes]
+    print("axes:", axes)
+
+
+if __name__ == "__main__":
+    main()

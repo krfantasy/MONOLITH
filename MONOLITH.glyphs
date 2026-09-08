@@ -225,752 +225,6 @@ sub x by x.spaced;
 sub y by y.spaced;
 sub z by z.spaced;";
 tag = salt;
-},
-{
-code = "# seam-metric kerning (monolith.kerning.KERN_PAIRS)
-pos A J -120;
-pos A T -160;
-pos A V -160;
-pos A W -60;
-pos A Y -160;
-pos A five -160;
-pos A four -160;
-pos A one -90;
-pos A seven -160;
-pos B J -120;
-pos B T -160;
-pos B V -160;
-pos B W -60;
-pos B Y -160;
-pos B five -160;
-pos B four -160;
-pos B one -90;
-pos B seven -160;
-pos C J -120;
-pos C T -160;
-pos C V -160;
-pos C W -60;
-pos C Y -160;
-pos C five -160;
-pos C four -160;
-pos C one -90;
-pos C seven -160;
-pos D J -120;
-pos D T -160;
-pos D V -160;
-pos D W -60;
-pos D Y -160;
-pos D five -160;
-pos D four -160;
-pos D one -90;
-pos D seven -160;
-pos E J -120;
-pos E T -160;
-pos E V -160;
-pos E W -60;
-pos E Y -160;
-pos E five -160;
-pos E four -160;
-pos E one -90;
-pos E seven -160;
-pos F A -160;
-pos F B -160;
-pos F C -160;
-pos F D -160;
-pos F E -160;
-pos F F -160;
-pos F G -160;
-pos F H -160;
-pos F I -160;
-pos F J -160;
-pos F K -160;
-pos F L -160;
-pos F M -160;
-pos F N -160;
-pos F O -160;
-pos F P -160;
-pos F Q -160;
-pos F R -160;
-pos F S -160;
-pos F T -160;
-pos F U -160;
-pos F V -160;
-pos F W -160;
-pos F X -160;
-pos F Y -160;
-pos F Z -160;
-pos F eight -160;
-pos F five -160;
-pos F four -160;
-pos F nine -160;
-pos F one -160;
-pos F seven -160;
-pos F six -160;
-pos F three -160;
-pos F two -160;
-pos F zero -160;
-pos G J -120;
-pos G T -160;
-pos G V -160;
-pos G W -60;
-pos G Y -160;
-pos G five -160;
-pos G four -160;
-pos G one -90;
-pos G seven -160;
-pos H J -120;
-pos H T -160;
-pos H V -160;
-pos H W -60;
-pos H Y -160;
-pos H five -160;
-pos H four -160;
-pos H one -90;
-pos H seven -160;
-pos I J -120;
-pos I T -160;
-pos I V -160;
-pos I W -60;
-pos I Y -160;
-pos I five -160;
-pos I four -160;
-pos I one -90;
-pos I seven -160;
-pos J J -120;
-pos J T -160;
-pos J V -160;
-pos J W -60;
-pos J Y -160;
-pos J five -160;
-pos J four -160;
-pos J one -90;
-pos J seven -160;
-pos K J -120;
-pos K T -160;
-pos K V -160;
-pos K W -60;
-pos K Y -160;
-pos K five -160;
-pos K four -160;
-pos K one -90;
-pos K seven -160;
-pos L J -120;
-pos L T -160;
-pos L V -160;
-pos L W -60;
-pos L Y -160;
-pos L five -160;
-pos L four -160;
-pos L one -90;
-pos L seven -160;
-pos M J -120;
-pos M T -160;
-pos M V -160;
-pos M W -60;
-pos M Y -160;
-pos M five -160;
-pos M four -160;
-pos M one -90;
-pos M seven -160;
-pos N J -120;
-pos N T -160;
-pos N V -160;
-pos N W -60;
-pos N Y -160;
-pos N five -160;
-pos N four -160;
-pos N one -90;
-pos N seven -160;
-pos O J -120;
-pos O T -160;
-pos O V -160;
-pos O W -60;
-pos O Y -160;
-pos O five -160;
-pos O four -160;
-pos O one -90;
-pos O seven -160;
-pos P A -160;
-pos P B -160;
-pos P C -160;
-pos P D -160;
-pos P E -160;
-pos P F -160;
-pos P G -160;
-pos P H -160;
-pos P I -160;
-pos P J -160;
-pos P K -160;
-pos P L -160;
-pos P M -160;
-pos P N -160;
-pos P O -160;
-pos P P -160;
-pos P Q -160;
-pos P R -160;
-pos P S -160;
-pos P T -160;
-pos P U -160;
-pos P V -160;
-pos P W -160;
-pos P X -160;
-pos P Y -160;
-pos P Z -160;
-pos P eight -160;
-pos P five -160;
-pos P four -160;
-pos P nine -160;
-pos P one -160;
-pos P seven -160;
-pos P six -160;
-pos P three -160;
-pos P two -160;
-pos P zero -160;
-pos Q J -120;
-pos Q T -160;
-pos Q V -160;
-pos Q W -60;
-pos Q Y -160;
-pos Q five -160;
-pos Q four -160;
-pos Q one -90;
-pos Q seven -160;
-pos R J -120;
-pos R T -160;
-pos R V -160;
-pos R W -60;
-pos R Y -160;
-pos R five -160;
-pos R four -160;
-pos R one -90;
-pos R seven -160;
-pos S J -120;
-pos S T -160;
-pos S V -160;
-pos S W -60;
-pos S Y -160;
-pos S five -160;
-pos S four -160;
-pos S one -90;
-pos S seven -160;
-pos T A -160;
-pos T B -160;
-pos T C -160;
-pos T D -160;
-pos T E -160;
-pos T F -160;
-pos T G -160;
-pos T H -160;
-pos T I -160;
-pos T J -160;
-pos T K -160;
-pos T L -160;
-pos T M -160;
-pos T N -160;
-pos T O -160;
-pos T P -160;
-pos T Q -160;
-pos T R -160;
-pos T S -160;
-pos T T -160;
-pos T U -160;
-pos T V -160;
-pos T W -160;
-pos T X -160;
-pos T Y -160;
-pos T Z -160;
-pos T eight -160;
-pos T five -160;
-pos T four -160;
-pos T nine -160;
-pos T one -160;
-pos T seven -160;
-pos T six -160;
-pos T three -160;
-pos T two -160;
-pos T zero -160;
-pos U J -120;
-pos U T -160;
-pos U V -160;
-pos U W -60;
-pos U Y -160;
-pos U five -160;
-pos U four -160;
-pos U one -90;
-pos U seven -160;
-pos V A -160;
-pos V B -160;
-pos V C -160;
-pos V D -160;
-pos V E -160;
-pos V F -160;
-pos V G -160;
-pos V H -160;
-pos V I -160;
-pos V J -160;
-pos V K -160;
-pos V L -160;
-pos V M -160;
-pos V N -160;
-pos V O -160;
-pos V P -160;
-pos V Q -160;
-pos V R -160;
-pos V S -160;
-pos V T -160;
-pos V U -160;
-pos V V -160;
-pos V W -160;
-pos V X -160;
-pos V Y -160;
-pos V Z -160;
-pos V eight -160;
-pos V five -160;
-pos V four -160;
-pos V nine -160;
-pos V one -160;
-pos V seven -160;
-pos V six -160;
-pos V three -160;
-pos V two -160;
-pos V zero -160;
-pos W A -60;
-pos W B -60;
-pos W C -60;
-pos W D -60;
-pos W E -60;
-pos W F -60;
-pos W G -60;
-pos W H -60;
-pos W I -60;
-pos W J -160;
-pos W K -60;
-pos W L -60;
-pos W M -60;
-pos W N -60;
-pos W O -60;
-pos W P -60;
-pos W Q -60;
-pos W R -60;
-pos W S -60;
-pos W T -160;
-pos W U -60;
-pos W V -160;
-pos W W -120;
-pos W X -60;
-pos W Y -160;
-pos W Z -60;
-pos W eight -60;
-pos W five -160;
-pos W four -160;
-pos W nine -60;
-pos W one -150;
-pos W seven -160;
-pos W six -60;
-pos W three -60;
-pos W two -60;
-pos W zero -60;
-pos X J -120;
-pos X T -160;
-pos X V -160;
-pos X W -60;
-pos X Y -160;
-pos X five -160;
-pos X four -160;
-pos X one -90;
-pos X seven -160;
-pos Y A -160;
-pos Y B -160;
-pos Y C -160;
-pos Y D -160;
-pos Y E -160;
-pos Y F -160;
-pos Y G -160;
-pos Y H -160;
-pos Y I -160;
-pos Y J -160;
-pos Y K -160;
-pos Y L -160;
-pos Y M -160;
-pos Y N -160;
-pos Y O -160;
-pos Y P -160;
-pos Y Q -160;
-pos Y R -160;
-pos Y S -160;
-pos Y T -160;
-pos Y U -160;
-pos Y V -160;
-pos Y W -160;
-pos Y X -160;
-pos Y Y -160;
-pos Y Z -160;
-pos Y eight -160;
-pos Y five -160;
-pos Y four -160;
-pos Y nine -160;
-pos Y one -160;
-pos Y seven -160;
-pos Y six -160;
-pos Y three -160;
-pos Y two -160;
-pos Y zero -160;
-pos Z J -120;
-pos Z T -160;
-pos Z V -160;
-pos Z W -60;
-pos Z Y -160;
-pos Z five -160;
-pos Z four -160;
-pos Z one -90;
-pos Z seven -160;
-pos a j -120;
-pos a t -160;
-pos a v -160;
-pos a w -60;
-pos a y -160;
-pos b j -120;
-pos b t -160;
-pos b v -160;
-pos b w -60;
-pos b y -160;
-pos c j -120;
-pos c t -160;
-pos c v -160;
-pos c w -60;
-pos c y -160;
-pos d j -120;
-pos d t -160;
-pos d v -160;
-pos d w -60;
-pos d y -160;
-pos e j -120;
-pos e t -160;
-pos e v -160;
-pos e w -60;
-pos e y -160;
-pos eight J -120;
-pos eight T -160;
-pos eight V -160;
-pos eight W -60;
-pos eight Y -160;
-pos eight five -160;
-pos eight four -160;
-pos eight one -90;
-pos eight seven -160;
-pos f a -160;
-pos f b -160;
-pos f c -160;
-pos f d -160;
-pos f e -160;
-pos f f -160;
-pos f g -160;
-pos f h -160;
-pos f i -160;
-pos f j -160;
-pos f k -160;
-pos f l -160;
-pos f m -160;
-pos f n -160;
-pos f o -160;
-pos f p -160;
-pos f q -160;
-pos f r -160;
-pos f s -160;
-pos f t -160;
-pos f u -160;
-pos f v -160;
-pos f w -160;
-pos f x -160;
-pos f y -160;
-pos f z -160;
-pos five J -120;
-pos five T -160;
-pos five V -160;
-pos five W -60;
-pos five Y -160;
-pos five five -160;
-pos five four -160;
-pos five one -90;
-pos five seven -160;
-pos four J -120;
-pos four T -160;
-pos four V -160;
-pos four W -60;
-pos four Y -160;
-pos four five -160;
-pos four four -160;
-pos four one -90;
-pos four seven -160;
-pos g j -120;
-pos g t -160;
-pos g v -160;
-pos g w -60;
-pos g y -160;
-pos h j -120;
-pos h t -160;
-pos h v -160;
-pos h w -60;
-pos h y -160;
-pos i j -120;
-pos i t -160;
-pos i v -160;
-pos i w -60;
-pos i y -160;
-pos j j -120;
-pos j t -160;
-pos j v -160;
-pos j w -60;
-pos j y -160;
-pos k j -120;
-pos k t -160;
-pos k v -160;
-pos k w -60;
-pos k y -160;
-pos l j -120;
-pos l t -160;
-pos l v -160;
-pos l w -60;
-pos l y -160;
-pos m j -120;
-pos m t -160;
-pos m v -160;
-pos m w -60;
-pos m y -160;
-pos n j -120;
-pos n t -160;
-pos n v -160;
-pos n w -60;
-pos n y -160;
-pos nine J -120;
-pos nine T -160;
-pos nine V -160;
-pos nine W -60;
-pos nine Y -160;
-pos nine five -160;
-pos nine four -160;
-pos nine one -90;
-pos nine seven -160;
-pos o j -120;
-pos o t -160;
-pos o v -160;
-pos o w -60;
-pos o y -160;
-pos one J -120;
-pos one T -160;
-pos one V -160;
-pos one W -60;
-pos one Y -160;
-pos one five -160;
-pos one four -160;
-pos one one -90;
-pos one seven -160;
-pos p a -160;
-pos p b -160;
-pos p c -160;
-pos p d -160;
-pos p e -160;
-pos p f -160;
-pos p g -160;
-pos p h -160;
-pos p i -160;
-pos p j -160;
-pos p k -160;
-pos p l -160;
-pos p m -160;
-pos p n -160;
-pos p o -160;
-pos p p -160;
-pos p q -160;
-pos p r -160;
-pos p s -160;
-pos p t -160;
-pos p u -160;
-pos p v -160;
-pos p w -160;
-pos p x -160;
-pos p y -160;
-pos p z -160;
-pos q j -120;
-pos q t -160;
-pos q v -160;
-pos q w -60;
-pos q y -160;
-pos r j -120;
-pos r t -160;
-pos r v -160;
-pos r w -60;
-pos r y -160;
-pos s j -120;
-pos s t -160;
-pos s v -160;
-pos s w -60;
-pos s y -160;
-pos seven J -120;
-pos seven T -160;
-pos seven V -160;
-pos seven W -60;
-pos seven Y -160;
-pos seven five -160;
-pos seven four -160;
-pos seven one -90;
-pos seven seven -160;
-pos six J -120;
-pos six T -160;
-pos six V -160;
-pos six W -60;
-pos six Y -160;
-pos six five -160;
-pos six four -160;
-pos six one -90;
-pos six seven -160;
-pos t a -160;
-pos t b -160;
-pos t c -160;
-pos t d -160;
-pos t e -160;
-pos t f -160;
-pos t g -160;
-pos t h -160;
-pos t i -160;
-pos t j -160;
-pos t k -160;
-pos t l -160;
-pos t m -160;
-pos t n -160;
-pos t o -160;
-pos t p -160;
-pos t q -160;
-pos t r -160;
-pos t s -160;
-pos t t -160;
-pos t u -160;
-pos t v -160;
-pos t w -160;
-pos t x -160;
-pos t y -160;
-pos t z -160;
-pos three J -120;
-pos three T -160;
-pos three V -160;
-pos three W -60;
-pos three Y -160;
-pos three five -160;
-pos three four -160;
-pos three one -90;
-pos three seven -160;
-pos two J -120;
-pos two T -160;
-pos two V -160;
-pos two W -60;
-pos two Y -160;
-pos two five -160;
-pos two four -160;
-pos two one -90;
-pos two seven -160;
-pos u j -120;
-pos u t -160;
-pos u v -160;
-pos u w -60;
-pos u y -160;
-pos v a -160;
-pos v b -160;
-pos v c -160;
-pos v d -160;
-pos v e -160;
-pos v f -160;
-pos v g -160;
-pos v h -160;
-pos v i -160;
-pos v j -160;
-pos v k -160;
-pos v l -160;
-pos v m -160;
-pos v n -160;
-pos v o -160;
-pos v p -160;
-pos v q -160;
-pos v r -160;
-pos v s -160;
-pos v t -160;
-pos v u -160;
-pos v v -160;
-pos v w -160;
-pos v x -160;
-pos v y -160;
-pos v z -160;
-pos w a -60;
-pos w b -60;
-pos w c -60;
-pos w d -60;
-pos w e -60;
-pos w f -60;
-pos w g -60;
-pos w h -60;
-pos w i -60;
-pos w j -160;
-pos w k -60;
-pos w l -60;
-pos w m -60;
-pos w n -60;
-pos w o -60;
-pos w p -60;
-pos w q -60;
-pos w r -60;
-pos w s -60;
-pos w t -160;
-pos w u -60;
-pos w v -160;
-pos w w -120;
-pos w x -60;
-pos w y -160;
-pos w z -60;
-pos x j -120;
-pos x t -160;
-pos x v -160;
-pos x w -60;
-pos x y -160;
-pos y a -160;
-pos y b -160;
-pos y c -160;
-pos y d -160;
-pos y e -160;
-pos y f -160;
-pos y g -160;
-pos y h -160;
-pos y i -160;
-pos y j -160;
-pos y k -160;
-pos y l -160;
-pos y m -160;
-pos y n -160;
-pos y o -160;
-pos y p -160;
-pos y q -160;
-pos y r -160;
-pos y s -160;
-pos y t -160;
-pos y u -160;
-pos y v -160;
-pos y w -160;
-pos y x -160;
-pos y y -160;
-pos y z -160;
-pos z j -120;
-pos z t -160;
-pos z v -160;
-pos z w -60;
-pos z y -160;
-pos zero J -120;
-pos zero T -160;
-pos zero V -160;
-pos zero W -60;
-pos zero Y -160;
-pos zero five -160;
-pos zero four -160;
-pos zero one -90;
-pos zero seven -160;";
-tag = kern;
 }
 );
 fontMaster = (
@@ -1029,7 +283,7 @@ name = Spaced;
 glyphs = (
 {
 glyphname = A;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -1082,7 +336,7 @@ unicode = 65;
 },
 {
 glyphname = B;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -1155,7 +409,7 @@ unicode = 66;
 },
 {
 glyphname = C;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -1210,7 +464,7 @@ unicode = 67;
 },
 {
 glyphname = D;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -1265,7 +519,7 @@ unicode = 68;
 },
 {
 glyphname = E;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -1338,7 +592,7 @@ unicode = 69;
 },
 {
 glyphname = F;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -1411,7 +665,7 @@ unicode = 70;
 },
 {
 glyphname = G;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -1484,7 +738,7 @@ unicode = 71;
 },
 {
 glyphname = H;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -1557,7 +811,7 @@ unicode = 72;
 },
 {
 glyphname = I;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -1594,7 +848,7 @@ unicode = 73;
 },
 {
 glyphname = J;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -1649,7 +903,7 @@ unicode = 74;
 },
 {
 glyphname = K;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -1722,7 +976,7 @@ unicode = 75;
 },
 {
 glyphname = L;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -1777,7 +1031,7 @@ unicode = 76;
 },
 {
 glyphname = M;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -1868,7 +1122,7 @@ unicode = 77;
 },
 {
 glyphname = N;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -1941,7 +1195,7 @@ unicode = 78;
 },
 {
 glyphname = O;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -1996,7 +1250,7 @@ unicode = 79;
 },
 {
 glyphname = P;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -2069,7 +1323,7 @@ unicode = 80;
 },
 {
 glyphname = Q;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -2142,7 +1396,7 @@ unicode = 81;
 },
 {
 glyphname = R;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -2233,7 +1487,7 @@ unicode = 82;
 },
 {
 glyphname = S;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -2306,7 +1560,7 @@ unicode = 83;
 },
 {
 glyphname = T;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -2361,7 +1615,7 @@ unicode = 84;
 },
 {
 glyphname = U;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -2434,7 +1688,7 @@ unicode = 85;
 },
 {
 glyphname = V;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -2489,7 +1743,7 @@ unicode = 86;
 },
 {
 glyphname = W;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -2580,7 +1834,7 @@ unicode = 87;
 },
 {
 glyphname = X;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -2635,7 +1889,7 @@ unicode = 88;
 },
 {
 glyphname = Y;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -2708,7 +1962,7 @@ unicode = 89;
 },
 {
 glyphname = Z;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -2781,7 +2035,7 @@ unicode = 90;
 },
 {
 glyphname = A.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -2833,7 +2087,7 @@ width = 850;
 },
 {
 glyphname = B.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -2905,7 +2159,7 @@ width = 850;
 },
 {
 glyphname = C.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -2959,7 +2213,7 @@ width = 850;
 },
 {
 glyphname = D.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -3013,7 +2267,7 @@ width = 850;
 },
 {
 glyphname = E.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -3085,7 +2339,7 @@ width = 850;
 },
 {
 glyphname = F.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -3157,7 +2411,7 @@ width = 850;
 },
 {
 glyphname = G.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -3229,7 +2483,7 @@ width = 850;
 },
 {
 glyphname = H.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -3301,7 +2555,7 @@ width = 850;
 },
 {
 glyphname = I.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -3337,7 +2591,7 @@ width = 490;
 },
 {
 glyphname = J.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -3391,7 +2645,7 @@ width = 850;
 },
 {
 glyphname = K.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -3463,7 +2717,7 @@ width = 850;
 },
 {
 glyphname = L.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -3517,7 +2771,7 @@ width = 850;
 },
 {
 glyphname = M.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -3607,7 +2861,7 @@ width = 850;
 },
 {
 glyphname = N.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -3679,7 +2933,7 @@ width = 850;
 },
 {
 glyphname = O.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -3733,7 +2987,7 @@ width = 850;
 },
 {
 glyphname = P.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -3805,7 +3059,7 @@ width = 850;
 },
 {
 glyphname = Q.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -3877,7 +3131,7 @@ width = 850;
 },
 {
 glyphname = R.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -3967,7 +3221,7 @@ width = 850;
 },
 {
 glyphname = S.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4039,7 +3293,7 @@ width = 850;
 },
 {
 glyphname = T.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4093,7 +3347,7 @@ width = 850;
 },
 {
 glyphname = U.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4165,7 +3419,7 @@ width = 850;
 },
 {
 glyphname = V.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4219,7 +3473,7 @@ width = 850;
 },
 {
 glyphname = W.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4309,7 +3563,7 @@ width = 850;
 },
 {
 glyphname = X.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4363,7 +3617,7 @@ width = 850;
 },
 {
 glyphname = Y.spaced;
-lastChange = "2026-09-08 17:00:11 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4435,7 +3689,7 @@ width = 850;
 },
 {
 glyphname = Z.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4507,7 +3761,7 @@ width = 850;
 },
 {
 glyphname = a;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4532,7 +3786,7 @@ unicode = 97;
 },
 {
 glyphname = b;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4557,7 +3811,7 @@ unicode = 98;
 },
 {
 glyphname = c;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4582,7 +3836,7 @@ unicode = 99;
 },
 {
 glyphname = d;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4607,7 +3861,7 @@ unicode = 100;
 },
 {
 glyphname = e;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4632,7 +3886,7 @@ unicode = 101;
 },
 {
 glyphname = f;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4657,7 +3911,7 @@ unicode = 102;
 },
 {
 glyphname = g;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4682,7 +3936,7 @@ unicode = 103;
 },
 {
 glyphname = h;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4707,7 +3961,7 @@ unicode = 104;
 },
 {
 glyphname = i;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4732,7 +3986,7 @@ unicode = 105;
 },
 {
 glyphname = j;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4757,7 +4011,7 @@ unicode = 106;
 },
 {
 glyphname = k;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4782,7 +4036,7 @@ unicode = 107;
 },
 {
 glyphname = l;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4807,7 +4061,7 @@ unicode = 108;
 },
 {
 glyphname = m;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4832,7 +4086,7 @@ unicode = 109;
 },
 {
 glyphname = n;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4857,7 +4111,7 @@ unicode = 110;
 },
 {
 glyphname = o;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4882,7 +4136,7 @@ unicode = 111;
 },
 {
 glyphname = p;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4907,7 +4161,7 @@ unicode = 112;
 },
 {
 glyphname = q;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4932,7 +4186,7 @@ unicode = 113;
 },
 {
 glyphname = r;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4957,7 +4211,7 @@ unicode = 114;
 },
 {
 glyphname = s;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -4982,7 +4236,7 @@ unicode = 115;
 },
 {
 glyphname = t;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5007,7 +4261,7 @@ unicode = 116;
 },
 {
 glyphname = u;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5032,7 +4286,7 @@ unicode = 117;
 },
 {
 glyphname = v;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5057,7 +4311,7 @@ unicode = 118;
 },
 {
 glyphname = w;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5082,7 +4336,7 @@ unicode = 119;
 },
 {
 glyphname = x;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5107,7 +4361,7 @@ unicode = 120;
 },
 {
 glyphname = y;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5132,7 +4386,7 @@ unicode = 121;
 },
 {
 glyphname = z;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5157,7 +4411,7 @@ unicode = 122;
 },
 {
 glyphname = a.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5181,7 +4435,7 @@ width = 850;
 },
 {
 glyphname = b.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5205,7 +4459,7 @@ width = 850;
 },
 {
 glyphname = c.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5229,7 +4483,7 @@ width = 850;
 },
 {
 glyphname = d.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5253,7 +4507,7 @@ width = 850;
 },
 {
 glyphname = e.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5277,7 +4531,7 @@ width = 850;
 },
 {
 glyphname = f.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5301,7 +4555,7 @@ width = 850;
 },
 {
 glyphname = g.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5325,7 +4579,7 @@ width = 850;
 },
 {
 glyphname = h.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5349,7 +4603,7 @@ width = 850;
 },
 {
 glyphname = i.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5373,7 +4627,7 @@ width = 490;
 },
 {
 glyphname = j.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5397,7 +4651,7 @@ width = 850;
 },
 {
 glyphname = k.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5421,7 +4675,7 @@ width = 850;
 },
 {
 glyphname = l.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5445,7 +4699,7 @@ width = 850;
 },
 {
 glyphname = m.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5469,7 +4723,7 @@ width = 850;
 },
 {
 glyphname = n.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5493,7 +4747,7 @@ width = 850;
 },
 {
 glyphname = o.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5517,7 +4771,7 @@ width = 850;
 },
 {
 glyphname = p.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5541,7 +4795,7 @@ width = 850;
 },
 {
 glyphname = q.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5565,7 +4819,7 @@ width = 850;
 },
 {
 glyphname = r.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5589,7 +4843,7 @@ width = 850;
 },
 {
 glyphname = s.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5613,7 +4867,7 @@ width = 850;
 },
 {
 glyphname = t.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5637,7 +4891,7 @@ width = 850;
 },
 {
 glyphname = u.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5661,7 +4915,7 @@ width = 850;
 },
 {
 glyphname = v.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5685,7 +4939,7 @@ width = 850;
 },
 {
 glyphname = w.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5709,7 +4963,7 @@ width = 850;
 },
 {
 glyphname = x.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5733,7 +4987,7 @@ width = 850;
 },
 {
 glyphname = y.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5757,7 +5011,7 @@ width = 850;
 },
 {
 glyphname = z.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5781,7 +5035,7 @@ width = 850;
 },
 {
 glyphname = zero;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5854,7 +5108,7 @@ unicode = 48;
 },
 {
 glyphname = one;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5909,7 +5163,7 @@ unicode = 49;
 },
 {
 glyphname = two;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -5982,7 +5236,7 @@ unicode = 50;
 },
 {
 glyphname = three;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -6055,7 +5309,7 @@ unicode = 51;
 },
 {
 glyphname = four;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -6128,7 +5382,7 @@ unicode = 52;
 },
 {
 glyphname = five;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -6219,7 +5473,7 @@ unicode = 53;
 },
 {
 glyphname = six;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -6292,7 +5546,7 @@ unicode = 54;
 },
 {
 glyphname = seven;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -6347,7 +5601,7 @@ unicode = 55;
 },
 {
 glyphname = eight;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -6420,7 +5674,7 @@ unicode = 56;
 },
 {
 glyphname = nine;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -6493,7 +5747,7 @@ unicode = 57;
 },
 {
 glyphname = zero.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -6565,7 +5819,7 @@ width = 850;
 },
 {
 glyphname = one.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -6619,7 +5873,7 @@ width = 580;
 },
 {
 glyphname = two.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -6691,7 +5945,7 @@ width = 850;
 },
 {
 glyphname = three.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -6763,7 +6017,7 @@ width = 850;
 },
 {
 glyphname = four.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -6835,7 +6089,7 @@ width = 850;
 },
 {
 glyphname = five.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -6925,7 +6179,7 @@ width = 850;
 },
 {
 glyphname = six.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -6997,7 +6251,7 @@ width = 850;
 },
 {
 glyphname = seven.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7051,7 +6305,7 @@ width = 850;
 },
 {
 glyphname = eight.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7123,7 +6377,7 @@ width = 850;
 },
 {
 glyphname = nine.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7195,7 +6449,7 @@ width = 850;
 },
 {
 glyphname = space;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7210,7 +6464,7 @@ unicode = 32;
 },
 {
 glyphname = period;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7247,7 +6501,7 @@ unicode = 46;
 },
 {
 glyphname = comma;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7302,7 +6556,7 @@ unicode = 44;
 },
 {
 glyphname = colon;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7357,7 +6611,7 @@ unicode = 58;
 },
 {
 glyphname = semicolon;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7430,7 +6684,7 @@ unicode = 59;
 },
 {
 glyphname = exclam;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7485,7 +6739,7 @@ unicode = 33;
 },
 {
 glyphname = question;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7576,7 +6830,7 @@ unicode = 63;
 },
 {
 glyphname = asterisk;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7667,7 +6921,7 @@ unicode = 42;
 },
 {
 glyphname = numbersign;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7758,7 +7012,7 @@ unicode = 35;
 },
 {
 glyphname = slash;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7795,7 +7049,7 @@ unicode = 47;
 },
 {
 glyphname = backslash;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7832,7 +7086,7 @@ unicode = 92;
 },
 {
 glyphname = period.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7868,7 +7122,7 @@ width = 430;
 },
 {
 glyphname = comma.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7922,7 +7176,7 @@ width = 470;
 },
 {
 glyphname = colon.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -7976,7 +7230,7 @@ width = 430;
 },
 {
 glyphname = semicolon.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8048,7 +7302,7 @@ width = 470;
 },
 {
 glyphname = exclam.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8102,7 +7356,7 @@ width = 430;
 },
 {
 glyphname = question.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8192,7 +7446,7 @@ width = 690;
 },
 {
 glyphname = asterisk.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8282,7 +7536,7 @@ width = 760;
 },
 {
 glyphname = numbersign.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8372,7 +7626,7 @@ width = 850;
 },
 {
 glyphname = slash.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8408,7 +7662,7 @@ width = 850;
 },
 {
 glyphname = backslash.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8444,7 +7698,7 @@ width = 850;
 },
 {
 glyphname = hyphen;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8481,7 +7735,7 @@ unicode = 45;
 },
 {
 glyphname = endash;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8518,7 +7772,7 @@ unicode = 8211;
 },
 {
 glyphname = emdash;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8555,7 +7809,7 @@ unicode = 8212;
 },
 {
 glyphname = underscore;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8592,7 +7846,7 @@ unicode = 95;
 },
 {
 glyphname = hyphen.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8628,7 +7882,7 @@ width = 630;
 },
 {
 glyphname = endash.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8664,7 +7918,7 @@ width = 730;
 },
 {
 glyphname = emdash.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8700,7 +7954,7 @@ width = 850;
 },
 {
 glyphname = underscore.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8736,7 +7990,7 @@ width = 850;
 },
 {
 glyphname = parenleft;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8791,7 +8045,7 @@ unicode = 40;
 },
 {
 glyphname = parenright;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8846,7 +8100,7 @@ unicode = 41;
 },
 {
 glyphname = braceleft;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -8937,7 +8191,7 @@ unicode = 123;
 },
 {
 glyphname = braceright;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -9028,7 +8282,7 @@ unicode = 125;
 },
 {
 glyphname = bracketleft;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -9101,7 +8355,7 @@ unicode = 91;
 },
 {
 glyphname = bracketright;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -9174,7 +8428,7 @@ unicode = 93;
 },
 {
 glyphname = parenleft.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -9228,7 +8482,7 @@ width = 690;
 },
 {
 glyphname = parenright.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -9282,7 +8536,7 @@ width = 690;
 },
 {
 glyphname = braceleft.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -9372,7 +8626,7 @@ width = 690;
 },
 {
 glyphname = braceright.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -9462,7 +8716,7 @@ width = 690;
 },
 {
 glyphname = bracketleft.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -9534,7 +8788,7 @@ width = 670;
 },
 {
 glyphname = bracketright.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -9606,7 +8860,7 @@ width = 670;
 },
 {
 glyphname = quotedbl;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -9661,7 +8915,7 @@ unicode = 34;
 },
 {
 glyphname = quotesingle;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -9698,7 +8952,7 @@ unicode = 39;
 },
 {
 glyphname = quotedbl.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -9752,7 +9006,7 @@ width = 630;
 },
 {
 glyphname = quotesingle.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -9788,7 +9042,7 @@ width = 390;
 },
 {
 glyphname = at;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -9887,7 +9141,7 @@ unicode = 64;
 },
 {
 glyphname = ampersand;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -9978,7 +9232,7 @@ unicode = 38;
 },
 {
 glyphname = bar;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -10015,7 +9269,7 @@ unicode = 124;
 },
 {
 glyphname = at.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -10113,7 +9367,7 @@ width = 850;
 },
 {
 glyphname = ampersand.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -10203,7 +9457,7 @@ width = 850;
 },
 {
 glyphname = bar.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -10239,7 +9493,7 @@ width = 390;
 },
 {
 glyphname = dollar;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -10330,7 +9584,7 @@ unicode = 36;
 },
 {
 glyphname = dollar.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -10420,7 +9674,7 @@ width = 850;
 },
 {
 glyphname = plus;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -10475,7 +9729,7 @@ unicode = 43;
 },
 {
 glyphname = equal;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -10530,7 +9784,7 @@ unicode = 61;
 },
 {
 glyphname = greater;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -10585,7 +9839,7 @@ unicode = 62;
 },
 {
 glyphname = less;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -10640,7 +9894,7 @@ unicode = 60;
 },
 {
 glyphname = asciitilde;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -10713,7 +9967,7 @@ unicode = 126;
 },
 {
 glyphname = asciicircum;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -10756,7 +10010,7 @@ unicode = 94;
 },
 {
 glyphname = percent;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -10865,7 +10119,7 @@ unicode = 37;
 },
 {
 glyphname = plus.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -10919,7 +10173,7 @@ width = 850;
 },
 {
 glyphname = equal.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -10973,7 +10227,7 @@ width = 850;
 },
 {
 glyphname = greater.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -11027,7 +10281,7 @@ width = 730;
 },
 {
 glyphname = less.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -11081,7 +10335,7 @@ width = 730;
 },
 {
 glyphname = asciitilde.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -11153,7 +10407,7 @@ width = 850;
 },
 {
 glyphname = asciicircum.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -11195,7 +10449,7 @@ width = 850;
 },
 {
 glyphname = percent.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -11303,7 +10557,7 @@ width = 850;
 },
 {
 glyphname = grave;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -11340,7 +10594,7 @@ unicode = 96;
 },
 {
 glyphname = grave.spaced;
-lastChange = "2026-09-08 17:00:12 +0000";
+lastChange = "2026-09-08 18:12:22 +0000";
 layers = (
 {
 layerId = m01;
@@ -11380,6 +10634,14 @@ instances = (
 axesValues = (
 0
 );
+customParameters = (
+{
+name = "Remove Features";
+value = (
+kern
+);
+}
+);
 instanceInterpolations = {
 m01 = 1;
 };
@@ -11405,6 +10667,1744 @@ instanceInterpolations = {
 name = Spaced;
 }
 );
+kerningLTR = {
+m01 = {
+A = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+B = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+C = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+D = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+E = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+F = {
+A = -160;
+B = -160;
+C = -160;
+D = -160;
+E = -160;
+F = -160;
+G = -160;
+H = -160;
+I = -160;
+J = -160;
+K = -160;
+L = -160;
+M = -160;
+N = -160;
+O = -160;
+P = -160;
+Q = -160;
+R = -160;
+S = -160;
+T = -160;
+U = -160;
+V = -160;
+W = -160;
+X = -160;
+Y = -160;
+Z = -160;
+eight = -160;
+five = -160;
+four = -160;
+nine = -160;
+one = -160;
+seven = -160;
+six = -160;
+three = -160;
+two = -160;
+zero = -160;
+};
+G = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+H = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+I = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+J = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+K = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+L = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+M = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+N = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+O = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+P = {
+A = -160;
+B = -160;
+C = -160;
+D = -160;
+E = -160;
+F = -160;
+G = -160;
+H = -160;
+I = -160;
+J = -160;
+K = -160;
+L = -160;
+M = -160;
+N = -160;
+O = -160;
+P = -160;
+Q = -160;
+R = -160;
+S = -160;
+T = -160;
+U = -160;
+V = -160;
+W = -160;
+X = -160;
+Y = -160;
+Z = -160;
+eight = -160;
+five = -160;
+four = -160;
+nine = -160;
+one = -160;
+seven = -160;
+six = -160;
+three = -160;
+two = -160;
+zero = -160;
+};
+Q = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+R = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+S = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+T = {
+A = -160;
+B = -160;
+C = -160;
+D = -160;
+E = -160;
+F = -160;
+G = -160;
+H = -160;
+I = -160;
+J = -160;
+K = -160;
+L = -160;
+M = -160;
+N = -160;
+O = -160;
+P = -160;
+Q = -160;
+R = -160;
+S = -160;
+T = -160;
+U = -160;
+V = -160;
+W = -160;
+X = -160;
+Y = -160;
+Z = -160;
+eight = -160;
+five = -160;
+four = -160;
+nine = -160;
+one = -160;
+seven = -160;
+six = -160;
+three = -160;
+two = -160;
+zero = -160;
+};
+U = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+V = {
+A = -160;
+B = -160;
+C = -160;
+D = -160;
+E = -160;
+F = -160;
+G = -160;
+H = -160;
+I = -160;
+J = -160;
+K = -160;
+L = -160;
+M = -160;
+N = -160;
+O = -160;
+P = -160;
+Q = -160;
+R = -160;
+S = -160;
+T = -160;
+U = -160;
+V = -160;
+W = -160;
+X = -160;
+Y = -160;
+Z = -160;
+eight = -160;
+five = -160;
+four = -160;
+nine = -160;
+one = -160;
+seven = -160;
+six = -160;
+three = -160;
+two = -160;
+zero = -160;
+};
+W = {
+A = -60;
+B = -60;
+C = -60;
+D = -60;
+E = -60;
+F = -60;
+G = -60;
+H = -60;
+I = -60;
+J = -160;
+K = -60;
+L = -60;
+M = -60;
+N = -60;
+O = -60;
+P = -60;
+Q = -60;
+R = -60;
+S = -60;
+T = -160;
+U = -60;
+V = -160;
+W = -120;
+X = -60;
+Y = -160;
+Z = -60;
+eight = -60;
+five = -160;
+four = -160;
+nine = -60;
+one = -150;
+seven = -160;
+six = -60;
+three = -60;
+two = -60;
+zero = -60;
+};
+X = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+Y = {
+A = -160;
+B = -160;
+C = -160;
+D = -160;
+E = -160;
+F = -160;
+G = -160;
+H = -160;
+I = -160;
+J = -160;
+K = -160;
+L = -160;
+M = -160;
+N = -160;
+O = -160;
+P = -160;
+Q = -160;
+R = -160;
+S = -160;
+T = -160;
+U = -160;
+V = -160;
+W = -160;
+X = -160;
+Y = -160;
+Z = -160;
+eight = -160;
+five = -160;
+four = -160;
+nine = -160;
+one = -160;
+seven = -160;
+six = -160;
+three = -160;
+two = -160;
+zero = -160;
+};
+Z = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+a = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+b = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+c = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+d = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+e = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+eight = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+f = {
+a = -160;
+b = -160;
+c = -160;
+d = -160;
+e = -160;
+f = -160;
+g = -160;
+h = -160;
+i = -160;
+j = -160;
+k = -160;
+l = -160;
+m = -160;
+n = -160;
+o = -160;
+p = -160;
+q = -160;
+r = -160;
+s = -160;
+t = -160;
+u = -160;
+v = -160;
+w = -160;
+x = -160;
+y = -160;
+z = -160;
+};
+five = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+four = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+g = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+h = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+i = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+j = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+k = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+l = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+m = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+n = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+nine = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+o = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+one = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+p = {
+a = -160;
+b = -160;
+c = -160;
+d = -160;
+e = -160;
+f = -160;
+g = -160;
+h = -160;
+i = -160;
+j = -160;
+k = -160;
+l = -160;
+m = -160;
+n = -160;
+o = -160;
+p = -160;
+q = -160;
+r = -160;
+s = -160;
+t = -160;
+u = -160;
+v = -160;
+w = -160;
+x = -160;
+y = -160;
+z = -160;
+};
+q = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+r = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+s = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+seven = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+six = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+t = {
+a = -160;
+b = -160;
+c = -160;
+d = -160;
+e = -160;
+f = -160;
+g = -160;
+h = -160;
+i = -160;
+j = -160;
+k = -160;
+l = -160;
+m = -160;
+n = -160;
+o = -160;
+p = -160;
+q = -160;
+r = -160;
+s = -160;
+t = -160;
+u = -160;
+v = -160;
+w = -160;
+x = -160;
+y = -160;
+z = -160;
+};
+three = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+two = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+u = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+v = {
+a = -160;
+b = -160;
+c = -160;
+d = -160;
+e = -160;
+f = -160;
+g = -160;
+h = -160;
+i = -160;
+j = -160;
+k = -160;
+l = -160;
+m = -160;
+n = -160;
+o = -160;
+p = -160;
+q = -160;
+r = -160;
+s = -160;
+t = -160;
+u = -160;
+v = -160;
+w = -160;
+x = -160;
+y = -160;
+z = -160;
+};
+w = {
+a = -60;
+b = -60;
+c = -60;
+d = -60;
+e = -60;
+f = -60;
+g = -60;
+h = -60;
+i = -60;
+j = -160;
+k = -60;
+l = -60;
+m = -60;
+n = -60;
+o = -60;
+p = -60;
+q = -60;
+r = -60;
+s = -60;
+t = -160;
+u = -60;
+v = -160;
+w = -120;
+x = -60;
+y = -160;
+z = -60;
+};
+x = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+y = {
+a = -160;
+b = -160;
+c = -160;
+d = -160;
+e = -160;
+f = -160;
+g = -160;
+h = -160;
+i = -160;
+j = -160;
+k = -160;
+l = -160;
+m = -160;
+n = -160;
+o = -160;
+p = -160;
+q = -160;
+r = -160;
+s = -160;
+t = -160;
+u = -160;
+v = -160;
+w = -160;
+x = -160;
+y = -160;
+z = -160;
+};
+z = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+zero = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+};
+"C9BFC30D-B752-4792-8BA9-8C1183666A90" = {
+A = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+B = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+C = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+D = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+E = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+F = {
+A = -160;
+B = -160;
+C = -160;
+D = -160;
+E = -160;
+F = -160;
+G = -160;
+H = -160;
+I = -160;
+J = -160;
+K = -160;
+L = -160;
+M = -160;
+N = -160;
+O = -160;
+P = -160;
+Q = -160;
+R = -160;
+S = -160;
+T = -160;
+U = -160;
+V = -160;
+W = -160;
+X = -160;
+Y = -160;
+Z = -160;
+eight = -160;
+five = -160;
+four = -160;
+nine = -160;
+one = -160;
+seven = -160;
+six = -160;
+three = -160;
+two = -160;
+zero = -160;
+};
+G = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+H = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+I = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+J = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+K = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+L = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+M = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+N = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+O = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+P = {
+A = -160;
+B = -160;
+C = -160;
+D = -160;
+E = -160;
+F = -160;
+G = -160;
+H = -160;
+I = -160;
+J = -160;
+K = -160;
+L = -160;
+M = -160;
+N = -160;
+O = -160;
+P = -160;
+Q = -160;
+R = -160;
+S = -160;
+T = -160;
+U = -160;
+V = -160;
+W = -160;
+X = -160;
+Y = -160;
+Z = -160;
+eight = -160;
+five = -160;
+four = -160;
+nine = -160;
+one = -160;
+seven = -160;
+six = -160;
+three = -160;
+two = -160;
+zero = -160;
+};
+Q = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+R = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+S = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+T = {
+A = -160;
+B = -160;
+C = -160;
+D = -160;
+E = -160;
+F = -160;
+G = -160;
+H = -160;
+I = -160;
+J = -160;
+K = -160;
+L = -160;
+M = -160;
+N = -160;
+O = -160;
+P = -160;
+Q = -160;
+R = -160;
+S = -160;
+T = -160;
+U = -160;
+V = -160;
+W = -160;
+X = -160;
+Y = -160;
+Z = -160;
+eight = -160;
+five = -160;
+four = -160;
+nine = -160;
+one = -160;
+seven = -160;
+six = -160;
+three = -160;
+two = -160;
+zero = -160;
+};
+U = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+V = {
+A = -160;
+B = -160;
+C = -160;
+D = -160;
+E = -160;
+F = -160;
+G = -160;
+H = -160;
+I = -160;
+J = -160;
+K = -160;
+L = -160;
+M = -160;
+N = -160;
+O = -160;
+P = -160;
+Q = -160;
+R = -160;
+S = -160;
+T = -160;
+U = -160;
+V = -160;
+W = -160;
+X = -160;
+Y = -160;
+Z = -160;
+eight = -160;
+five = -160;
+four = -160;
+nine = -160;
+one = -160;
+seven = -160;
+six = -160;
+three = -160;
+two = -160;
+zero = -160;
+};
+W = {
+A = -60;
+B = -60;
+C = -60;
+D = -60;
+E = -60;
+F = -60;
+G = -60;
+H = -60;
+I = -60;
+J = -160;
+K = -60;
+L = -60;
+M = -60;
+N = -60;
+O = -60;
+P = -60;
+Q = -60;
+R = -60;
+S = -60;
+T = -160;
+U = -60;
+V = -160;
+W = -120;
+X = -60;
+Y = -160;
+Z = -60;
+eight = -60;
+five = -160;
+four = -160;
+nine = -60;
+one = -150;
+seven = -160;
+six = -60;
+three = -60;
+two = -60;
+zero = -60;
+};
+X = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+Y = {
+A = -160;
+B = -160;
+C = -160;
+D = -160;
+E = -160;
+F = -160;
+G = -160;
+H = -160;
+I = -160;
+J = -160;
+K = -160;
+L = -160;
+M = -160;
+N = -160;
+O = -160;
+P = -160;
+Q = -160;
+R = -160;
+S = -160;
+T = -160;
+U = -160;
+V = -160;
+W = -160;
+X = -160;
+Y = -160;
+Z = -160;
+eight = -160;
+five = -160;
+four = -160;
+nine = -160;
+one = -160;
+seven = -160;
+six = -160;
+three = -160;
+two = -160;
+zero = -160;
+};
+Z = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+a = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+b = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+c = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+d = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+e = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+eight = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+f = {
+a = -160;
+b = -160;
+c = -160;
+d = -160;
+e = -160;
+f = -160;
+g = -160;
+h = -160;
+i = -160;
+j = -160;
+k = -160;
+l = -160;
+m = -160;
+n = -160;
+o = -160;
+p = -160;
+q = -160;
+r = -160;
+s = -160;
+t = -160;
+u = -160;
+v = -160;
+w = -160;
+x = -160;
+y = -160;
+z = -160;
+};
+five = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+four = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+g = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+h = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+i = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+j = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+k = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+l = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+m = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+n = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+nine = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+o = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+one = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+p = {
+a = -160;
+b = -160;
+c = -160;
+d = -160;
+e = -160;
+f = -160;
+g = -160;
+h = -160;
+i = -160;
+j = -160;
+k = -160;
+l = -160;
+m = -160;
+n = -160;
+o = -160;
+p = -160;
+q = -160;
+r = -160;
+s = -160;
+t = -160;
+u = -160;
+v = -160;
+w = -160;
+x = -160;
+y = -160;
+z = -160;
+};
+q = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+r = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+s = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+seven = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+six = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+t = {
+a = -160;
+b = -160;
+c = -160;
+d = -160;
+e = -160;
+f = -160;
+g = -160;
+h = -160;
+i = -160;
+j = -160;
+k = -160;
+l = -160;
+m = -160;
+n = -160;
+o = -160;
+p = -160;
+q = -160;
+r = -160;
+s = -160;
+t = -160;
+u = -160;
+v = -160;
+w = -160;
+x = -160;
+y = -160;
+z = -160;
+};
+three = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+two = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+u = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+v = {
+a = -160;
+b = -160;
+c = -160;
+d = -160;
+e = -160;
+f = -160;
+g = -160;
+h = -160;
+i = -160;
+j = -160;
+k = -160;
+l = -160;
+m = -160;
+n = -160;
+o = -160;
+p = -160;
+q = -160;
+r = -160;
+s = -160;
+t = -160;
+u = -160;
+v = -160;
+w = -160;
+x = -160;
+y = -160;
+z = -160;
+};
+w = {
+a = -60;
+b = -60;
+c = -60;
+d = -60;
+e = -60;
+f = -60;
+g = -60;
+h = -60;
+i = -60;
+j = -160;
+k = -60;
+l = -60;
+m = -60;
+n = -60;
+o = -60;
+p = -60;
+q = -60;
+r = -60;
+s = -60;
+t = -160;
+u = -60;
+v = -160;
+w = -120;
+x = -60;
+y = -160;
+z = -60;
+};
+x = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+y = {
+a = -160;
+b = -160;
+c = -160;
+d = -160;
+e = -160;
+f = -160;
+g = -160;
+h = -160;
+i = -160;
+j = -160;
+k = -160;
+l = -160;
+m = -160;
+n = -160;
+o = -160;
+p = -160;
+q = -160;
+r = -160;
+s = -160;
+t = -160;
+u = -160;
+v = -160;
+w = -160;
+x = -160;
+y = -160;
+z = -160;
+};
+z = {
+j = -120;
+t = -160;
+v = -160;
+w = -60;
+y = -160;
+};
+zero = {
+J = -120;
+T = -160;
+V = -160;
+W = -60;
+Y = -160;
+five = -160;
+four = -160;
+one = -90;
+seven = -160;
+};
+};
+};
 metrics = (
 {
 type = ascender;

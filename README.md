@@ -18,9 +18,10 @@ printable ASCII punctuation & symbols plus en/em dashes — 97 glyphs, plus a
 
 Grab the built fonts from [`fonts/`](fonts/):
 
-- `MONOLITH-ExtraBold.otf` — print / desktop
-- `MONOLITH-ExtraBold.ttf` — web / apps
-- `MONOLITH-Variable.ttf` — variable: continuous spacing via the `SPAC` axis
+- `MONOLITH-ExtraBold.otf` — print / desktop (unkerned block cut)
+- `MONOLITH-ExtraBold.ttf` — web / apps (unkerned block cut)
+- `MONOLITH-Variable.ttf` — variable: continuous spacing via `SPAC`,
+  continuous kerning via `KERN`
 
 ## Spacing
 
@@ -56,6 +57,22 @@ has a `.spaced` alternate with 50-unit sidebearings, substituted by:
 
 ![Spaced specimen](specimens/specimen-spaced.png)
 
+## Kerning
+
+MONOLITH ships **kern-free by default** — the pure block look is the default
+everywhere. On top of that, the variable font carries a **`KERN` axis
+(0–100, default 0)** that scales 742 seam-metric kern pairs (computed from
+where each letter's edge recedes from the vertical — A/V, A/J, T/… and their
+lowercase mirrors), from no kerning at 0 to full kerning at 100:
+
+- **CSS:** `font-variation-settings: "KERN" 100;`
+- Values interpolate: `KERN 50` applies every kern at half strength.
+- The statics have no kerning at all (their instance drops the feature).
+- The same 742 pairs live in the Glyphs source's native kerning table —
+  open Window ▸ Kerning to inspect or tweak them.
+
+![Kerned specimen](specimens/specimen-kern100.png)
+
 ## Rebuilding
 
 The font source is [`MONOLITH.glyphs`](MONOLITH.glyphs). The letterforms live
@@ -70,24 +87,30 @@ specimens):
 2. Paste the contents of [`scripts/macro_bootstrap.py`](scripts/macro_bootstrap.py)
    (adjust the one path line to your checkout) and press **Run**.
    `MONOLITH.glyphs` is rewritten in place — including the two `SPAC` masters
-   and the `kern` feature — and the TTF/OTF statics are exported straight into
-   `fonts/`. The variable font can't be scripted in Glyphs 3.5 (`generate(
-   Format=VARIABLE)` is broken): export it by hand via File ▸ Export ▸
-   **Variable Fonts** into `fonts/`, then rename `MONOLITHVF.ttf` to
-   `MONOLITH-Variable.ttf`.
+   and the native kerning pairs — and everything is exported into `fonts/`:
+   the TTF/OTF statics (unkerned), and the raw variable font
+   `MONOLITH-Variable-raw.ttf`.
+3. Finish the variable font outside Glyphs — Glyphs 3.5 can't export kerning
+   as an axis (its "VAR with KERN" plugin is broken), so
+   [`src/monolith/kern_axis.py`](src/monolith/kern_axis.py) adds the `KERN`
+   axis + GPOS VariationStore with fontTools:
+
+   ```sh
+   uv run python -m monolith.kern_axis   # -> fonts/MONOLITH-Variable.ttf
+   ```
 
 **Regenerate the specimen images** (no Glyphs needed):
 
 ```sh
 uv sync
 uv run monolith-specimen        # writes specimens/specimen{,-spaced}.png
-uv run monolith-specimen --spac 30   # + specimens/specimen-spac30.png (needs the variable font)
+uv run monolith-specimen --spac 30   # + specimen-spac30.png and specimen-kern100.png (needs the variable font)
 ```
 
 Specimen rows are laid out by shaping the exported binaries with HarfBuzz,
-so the PNGs show the font's real spacing — default advances + GPOS kern,
-`ss01` substitution for the loose sheet, `SPAC` variations for the axis
-sheet. Nothing is hand-adjusted.
+so the PNGs show the font's real spacing — default (kern-free) advances,
+`ss01` substitution for the loose sheet, `SPAC`/`KERN` variations for the
+axis sheets. Nothing is hand-adjusted.
 
 ## Development
 
@@ -100,10 +123,12 @@ uv run ruff check .
 `tests/test_design.py` guards the invariants that keep the font legible:
 full printable-ASCII coverage, a minimum-thickness tripwire on diagonal
 strokes, counter presence for the confusable-prone letters, and the
-tight/spaced advance math. `tests/test_variable.py` guards the SPAC axis:
-axis metadata, per-glyph advance math at 0/30/130, and outline invariance.
-`tests/test_shaping.py` runs the exported binaries through HarfBuzz to prove
-the `kern` feature and `SPAC` axis actually apply.
+tight/spaced advance math. `tests/test_variable.py` guards both axes:
+axis metadata, the GDEF VariationStore wiring behind `KERN`, per-glyph
+advance math at 0/30/130, and outline invariance. `tests/test_shaping.py`
+runs the exported binaries through HarfBuzz to prove everything ships
+unkerned by default, that `KERN` applies and interpolates, and that it
+composes with `SPAC`.
 
 ## License
 

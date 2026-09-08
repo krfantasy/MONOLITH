@@ -1,8 +1,11 @@
-"""End-to-end shaping checks: a real shaper must apply SPAC + kern.
+"""End-to-end shaping checks: a real shaper must apply SPAC + the KERN axis.
 
 These guard the two layout features where a structurally-valid table could
 still be silently ignored (wrong script/langsys, feature never wired up):
 HarfBuzz is the reference for what text engines will actually do.
+
+Contract: everything ships UNKERNED by default — the statics have no kern
+at all, the variable font's kern lives behind the KERN axis (default 0).
 """
 
 from pathlib import Path
@@ -18,18 +21,30 @@ pytestmark = pytest.mark.skipif(
     not (FONT.exists() and VF.exists()), reason="fonts not exported from Glyphs yet"
 )
 
+AV_KERN = 160  # the seam-metric kern for A/V, applied at KERN=100
+
 
 @pytest.fixture(scope="module")
 def vf_path() -> Path:
     return VF
 
 
-def _shaped_positions(font_path: Path, text: str, spac: int | None = None) -> list[int]:
+def _shaped_positions(
+    font_path: Path,
+    text: str,
+    spac: int | None = None,
+    kern: int | None = None,
+) -> list[int]:
     blob = hb.Blob.from_file_path(str(font_path))
     face = hb.Face(blob)
     font = hb.Font(face)
+    variations: dict[str, float] = {}
     if spac is not None:
-        font.set_variations({"SPAC": spac})
+        variations["SPAC"] = spac
+    if kern is not None:
+        variations["KERN"] = kern
+    if variations:
+        font.set_variations(variations)
     buf = hb.Buffer()
     buf.add_str(text)
     buf.guess_segment_properties()
@@ -37,31 +52,44 @@ def _shaped_positions(font_path: Path, text: str, spac: int | None = None) -> li
     return [pos.x_advance for pos in buf.glyph_positions]
 
 
-def test_static_carries_kern() -> None:
+def test_static_ships_kern_free() -> None:
     from fontTools.ttLib import TTFont
 
-    if "GPOS" not in TTFont(str(FONT)):
-        pytest.skip("static predates the kern feature — re-export from Glyphs (macro_bootstrap)")
-    av = _shaped_positions(FONT, "AV")
-    hh = _shaped_positions(FONT, "HH")
-    assert sum(av) == sum(hh) - 160
+    ft = TTFont(str(FONT))
+    gpos = ft.get("GPOS")
+    tags = sorted({fr.FeatureTag for fr in gpos.table.FeatureList.FeatureRecord}) if gpos else []
+    assert tags == [], "statics are the unkerned block cut"
+    assert sum(_shaped_positions(FONT, "AV")) == 1180  # 590 + 590, no kern
 
 
-def test_kern_shifts_AV_in_real_shaping(vf_path: Path) -> None:
-    av = _shaped_positions(vf_path, "AV")
-    hh = _shaped_positions(vf_path, "HH")
+def test_vf_default_is_kern_free(vf_path: Path) -> None:
+    # KERN axis default 0: the variable font renders the block look too
+    assert _shaped_positions(vf_path, "AV") == [590, 590]
+
+
+def test_kern_axis_100_kerns_AV(vf_path: Path) -> None:
+    av = _shaped_positions(vf_path, "AV", kern=100)
+    hh = _shaped_positions(vf_path, "HH", kern=100)
     # the -160 kern lands on one of the two advances (Value1 -> first glyph);
     # the line total is what layout sees
-    assert sum(av) == sum(hh) - 160
+    assert sum(av) == sum(hh) - AV_KERN
     assert sorted(av) == [430, 590]
 
 
+def test_kern_axis_interpolates(vf_path: Path) -> None:
+    full = sum(_shaped_positions(vf_path, "AV", kern=100))
+    base = sum(_shaped_positions(vf_path, "AV", kern=0))
+    for kern, want_delta in ((25, -40), (50, -80), (75, -120)):
+        got = sum(_shaped_positions(vf_path, "AV", kern=kern))
+        assert got == base + (full - base) * kern // 100, kern
+
+
 def test_kern_and_spac_compose(vf_path: Path) -> None:
-    at65 = _shaped_positions(vf_path, "AV", spac=65)
-    plain65 = _shaped_positions(vf_path, "HH", spac=65)
-    assert sum(at65) == sum(plain65) - 160
+    kerned65 = _shaped_positions(vf_path, "AV", spac=65, kern=100)
+    plain65 = _shaped_positions(vf_path, "HH", spac=65, kern=100)
+    assert sum(kerned65) == sum(plain65) - AV_KERN
     assert plain65 == [655, 655]  # SPAC 65 added to every advance
 
 
 def test_solid_pair_unaffected(vf_path: Path) -> None:
-    assert _shaped_positions(vf_path, "HH") == [590, 590]
+    assert _shaped_positions(vf_path, "HH", kern=100) == [590, 590]

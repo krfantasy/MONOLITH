@@ -189,6 +189,37 @@ def set_feature(F: Any, fname: str, fcode: str) -> None:
     F.features.append(nf)
 
 
+def drop_feature(F: Any, fname: str) -> None:
+    for f in list(F.features):
+        if getattr(f, "name", None) == fname:
+            try:
+                F.features.remove(f)
+                print("removed feature %s" % fname)
+            except Exception as e:
+                print("could not remove feature %s: %s" % (fname, e))
+
+
+def set_native_kerning(F: Any) -> None:
+    """Write every seam-metric pair into Glyphs' native kerning table.
+
+    Keys MUST be plain strings: font.kerning[masterID][leftName][rightName]
+    = int. A tuple-keyed dict here once poisoned the document (F.save died
+    with "OC_BuiltinPythonArray hasPrefix:"). Both masters get identical
+    values so kerning stays constant along SPAC; the KERN axis post-step
+    scales it 0-100. The kern feature must not coexist with this — Glyphs
+    would compile both and double every kern.
+    """
+    for master in F.masters:
+        mid = master.id
+        F.kerning[mid] = {}
+        lefts = F.kerning[mid]
+        for (lg, rg), v in sorted(KERN_PAIRS.items()):
+            if lg not in lefts:
+                lefts[lg] = {}
+            lefts[lg][rg] = int(v)
+        print("native kerning: %d pairs on master %s" % (len(KERN_PAIRS), master.name))
+
+
 def winding_at(layer: GSLayer, px: float, py: float) -> int:
     w = 0
     for p in layer.paths:
@@ -310,18 +341,6 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
     set_feature(F, "salt", "\n".join(subs))
     print("features ss01/salt written with %d substitutions" % len(subs))
 
-    # pair kerning from the seam metric, written as kern feature code
-    # (pos A V -160). Feature code is the only write path that survives
-    # F.save() here — the kerning-panel API poisons the document — and
-    # Glyphs compiles it into the statics and the variable font. The
-    # .spaced alternates stay unkerned: GSUB runs before GPOS, so any
-    # glyph substituted for a .spaced alternate drops out of every pair.
-    kern_lines = ["# seam-metric kerning (monolith.kerning.KERN_PAIRS)"]
-    for (lg, rg), v in sorted(KERN_PAIRS.items()):
-        kern_lines.append("pos %s %s %d;" % (lg, rg, v))
-    set_feature(F, "kern", "\n".join(kern_lines))
-    print("kern feature written with %d pairs" % len(KERN_PAIRS))
-
     # SPAC axis: spacing as a real axis. The second master carries the same
     # outlines with every advance wider by SPAC_MAX, so the variable export
     # reduces to fvar + HVAR. The single-master Weight axis from the Text
@@ -393,6 +412,15 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
     if registered != len(F.glyphs):
         print("WARNING: Spaced master incomplete — variable export will fail")
 
+    # pair kerning from the seam metric as NATIVE per-master kerning —
+    # visible and editable in Window > Kerning, and it's the data Glyphs
+    # itself interpolates and compiles into GPOS at export. Needs both
+    # masters in place, hence after the SPAC block. The .spaced alternates
+    # stay unkerned: kerning is keyed on glyph names, so a glyph
+    # substituted for a .spaced alternate drops out of every pair.
+    drop_feature(F, "kern")
+    set_native_kerning(F)
+
     # instances: ExtraBold is the static export (SPAC 0 keeps the shipped
     # tight look); Touching/Spaced become the variable font's named instances.
     inst = None
@@ -405,6 +433,14 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
         inst.name = "ExtraBold"
         F.instances.append(inst)
     inst.axes = [0]
+    # the static cut ships unkerned (pure block look): native kerning
+    # compiles into the kern feature at export, so this instance drops
+    # the feature — the variable font keeps it to feed the KERN axis.
+    try:
+        inst.customParameters["Remove Features"] = "kern"
+        print("ExtraBold: Remove Features = kern (static ships unkerned)")
+    except Exception as e:
+        print("Remove Features parameter failed:", e)
     for iname, ival in (("Touching", TIGHT_OVERLAP), ("Spaced", spac_max)):
         found = None
         for i in F.instances:
