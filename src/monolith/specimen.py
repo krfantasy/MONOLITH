@@ -7,9 +7,11 @@ from fontTools.ttLib import TTFont
 from PIL import Image, ImageChops, ImageDraw
 
 from monolith.design import Point
+from monolith.variable import instance_at_spac
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_FONT = REPO_ROOT / "fonts" / "MONOLITH-ExtraBold.ttf"
+DEFAULT_VARIABLE_FONT = REPO_ROOT / "fonts" / "MONOLITH-Variable.ttf"
 DEFAULT_OUT_DIR = REPO_ROOT / "specimens"
 
 BG = "#161616"
@@ -27,8 +29,9 @@ def signed_area(c: Sequence[Point]) -> float:
 
 
 class SpecimenRenderer:
-    def __init__(self, font_path: str | Path) -> None:
-        font = TTFont(str(font_path))
+    def __init__(self, font_path: str | Path,
+                 font: TTFont | None = None) -> None:
+        font = font if font is not None else TTFont(str(font_path))
         self.gs = font.getGlyphSet()
         self.cmap = font.getBestCmap()
         self._cache: dict[str | None, list[list[Point]]] = {}
@@ -139,7 +142,9 @@ def build_rows(cmap: dict[int, str]) -> list[str]:
 
 
 def main(font_path: str | Path | None = None,
-         out_dir: str | Path | None = None) -> None:
+         out_dir: str | Path | None = None,
+         spac: int | None = None,
+         variable_font_path: str | Path | None = None) -> None:
     font_path = Path(font_path) if font_path else DEFAULT_FONT
     out_dir = Path(out_dir) if out_dir else DEFAULT_OUT_DIR
     if not font_path.exists():
@@ -154,3 +159,13 @@ def main(font_path: str | Path | None = None,
     # spaced variant: .spaced alternates (+130 advance), no extra tracking
     r.render(SHOWCASE, rows, spaced, 240 + 130, 0.34, 0.22, 140, 0,
              out_dir / "specimen-spaced.png")
+    if spac is not None:
+        # SPAC-axis variant: advances baked from the variable font at `spac`
+        vpath = Path(variable_font_path) if variable_font_path else DEFAULT_VARIABLE_FONT
+        if not vpath.exists():
+            raise SystemExit(f"variable font not found: {vpath}\n"
+                             "Build it first: uv run monolith-variable")
+        inst = instance_at_spac(vpath, spac)
+        rv = SpecimenRenderer(vpath, font=inst)
+        rv.render(SHOWCASE, rows, tight, rv.gs["space"].width, 0.34, 0.22, 140, 0,
+                  out_dir / f"specimen-spac{spac}.png")
