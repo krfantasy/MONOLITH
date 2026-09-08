@@ -79,9 +79,11 @@ The font source is [`MONOLITH.glyphs`](MONOLITH.glyphs). The letterforms live
 as pure Python data in [`src/monolith/design.py`](src/monolith/design.py);
 the Glyphs-side builder turns that data into the `.glyphs` file.
 
-**Regenerate the fonts** (requires [Glyphs](https://glyphsapp.com) — the whole
-generation path is Glyphs; fontTools is only used downstream by tests and
-specimens):
+**Regenerate the fonts** (requires [Glyphs](https://glyphsapp.com) — Glyphs
+generates everything: the source, the statics, and the raw variable font.
+The one fontTools step is finishing the variable font, because Glyphs 3.5
+can't export kerning as an axis; fontTools is otherwise downstream-only,
+in tests and specimens):
 
 1. Open Glyphs, then Window ▸ Macro Panel (⌥⌘M).
 2. Paste the contents of [`scripts/macro_bootstrap.py`](scripts/macro_bootstrap.py)
