@@ -71,6 +71,20 @@ def test_named_instances_pinned_by_name(vf: TTFont) -> None:
     assert got == {"Tight": (0.0, 0.0), "Touching": (30.0, 0.0), "Spaced": (130.0, 0.0)}
 
 
+def test_hvar_carries_spac_advances(vf: TTFont) -> None:
+    """Advances live in HVAR (delta index = glyph ID), matching the raw
+    font's gvar phantom deltas — 130 for every real glyph, -500 for
+    .notdef's auto-sized box."""
+    store = vf["HVAR"].table.VarStore
+    assert store is not None
+    data = store.VarData[0]
+    assert data.ItemCount == len(vf.getGlyphOrder())
+    by_delta: dict[int, int] = {}
+    for gname, item in zip(vf.getGlyphOrder(), data.Item):
+        by_delta[item[0]] = by_delta.get(item[0], 0) + 1
+    assert by_delta == {130: 193, -500: 1}
+
+
 def test_kern_wiring_store_and_feature(vf: TTFont) -> None:
     """GDEF must carry the delta store and GPOS a kern lookup driven by it."""
     store = vf["GDEF"].table.VarStore

@@ -96,7 +96,8 @@ in tests and specimens):
 3. Finish the variable font outside Glyphs — Glyphs 3.5 can't export kerning
    as an axis (its "VAR with KERN" plugin is broken), so
    [`src/monolith/kern_axis.py`](src/monolith/kern_axis.py) adds the `KERN`
-   axis + GPOS VariationStore with fontTools:
+   axis (GPOS VariationStore) and an `HVAR` for the `SPAC` advances with
+   fontTools:
 
    ```sh
    uv run python -m monolith.kern_axis   # -> fonts/MONOLITH-Variable.ttf

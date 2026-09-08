@@ -15,6 +15,11 @@ with SPAC masters only) into the shipped variable font
 - A GPOS `kern` feature (default-on in every shaper) holds PairPos records
   whose XAdvance is 0 plus a VariationIndex device into that store, so a
   KERN coordinate of t applies each kern scaled by t/100.
+- HVAR carries the SPAC advance deltas in a dedicated metrics table (the
+  Glyphs export smuggles them through gvar phantom points, which forces
+  shapers to interpolate outlines just to learn a width). Deltas are
+  measured from the raw font, glyph by glyph — they are not uniformly
+  +130: .notdef's auto-sized box goes the other way.
 
 Run after the Glyphs export: `python -m monolith.kern_axis`.
 """
@@ -28,6 +33,7 @@ from typing import Any
 from fontTools.ttLib import TTFont, newTable
 from fontTools.ttLib.tables import otTables as ot
 from fontTools.varLib.builder import buildVarData, buildVarRegionList, buildVarStore
+from fontTools.varLib.instancer import instantiateVariableFont
 
 from monolith.kerning import KERN_PAIRS
 
@@ -155,6 +161,44 @@ def _variation_device(outer: int, inner: int) -> ot.Device:
     return d
 
 
+def _spac_advance_deltas(src: str | Path) -> list[int]:
+    """Per-glyph advance delta at the SPAC peak, measured from src.
+
+    Measured rather than assumed: instancing the raw font at its SPAC
+    maximum and diffing hmtx captures exactly what the gvar phantom
+    points carry today (193 glyphs +130, .notdef -500).
+    """
+    probe = TTFont(str(src))
+    spac = float(next(a.maxValue for a in probe["fvar"].axes if a.axisTag == "SPAC"))
+    loose = instantiateVariableFont(probe, {"SPAC": spac}, inplace=False)
+    order = probe.getGlyphOrder()
+    return [loose["hmtx"][g][0] - probe["hmtx"][g][0] for g in order]
+
+
+def _add_hvar(font: TTFont, deltas: list[int]) -> None:
+    """Dedicated advance-metrics variation for SPAC.
+
+    One region (SPAC peak), one delta per glyph, delta index = glyph ID
+    (no AdvWidthMap): with HVAR present, shapers take advances from here
+    instead of interpolating gvar phantom points. KERN never moves an
+    advance, so it gets a neutral entry in the single region.
+    """
+    axis_tags = [a.axisTag for a in font["fvar"].axes]
+    region_list = buildVarRegionList([{"SPAC": (0.0, 1.0, 1.0)}], axis_tags)
+    var_data = buildVarData([0], [[d] for d in deltas], optimize=False)
+    store = buildVarStore(region_list, [var_data])
+    hvar = ot.HVAR()
+    hvar.Version = 0x00010000
+    hvar.VarStore = store
+    hvar.AdvWidthMap = None
+    hvar.LsbMap = None
+    hvar.RsbMap = None
+    table = newTable("HVAR")
+    table.table = hvar
+    font["HVAR"] = table
+    print("HVAR: SPAC advance deltas attached (%d glyphs)" % len(deltas))
+
+
 def _build_pair_pos(font: TTFont) -> ot.PairPos:
     """PairPos Format 1: XAdvance 0 + VariationIndex per pair (delta=full)."""
     glyph_order = font.getGlyphOrder()
@@ -278,6 +322,7 @@ def build_kern_axis(src: str | Path = RAW_VF, out: str | Path = SHIPPED_VF) -> T
     _attach_store_to_gdef(font, store)
     pair_pos = _build_pair_pos(font)
     _add_gpos(font, pair_pos)
+    _add_hvar(font, _spac_advance_deltas(src))
     font.save(str(out))
     print("saved", out)
     return font
