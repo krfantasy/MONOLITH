@@ -106,22 +106,25 @@ def apply_kerning(font: TTFont) -> None:
     """
     if _kern_feature_present(font):
         return
-    glyph_order = set(font.getGlyphOrder())
+    order = font.getGlyphOrder()
+    order_index = {g: i for i, g in enumerate(order)}
     pairs: dict[str, list[tuple[str, int]]] = {}
     for (lg, rg), v in KERN_PAIRS.items():
-        if lg in glyph_order and rg in glyph_order:
+        if lg in order_index and rg in order_index:
             pairs.setdefault(lg, []).append((rg, v))
     if not pairs:
         return
 
+    # coverage must be sorted by glyph id, not name
+    lefts = sorted(pairs, key=order_index.__getitem__)
     pair_pos = otTables.PairPos()
     pair_pos.Format = 1
     pair_pos.ValueFormat1 = 0x0004  # XAdvance only
     pair_pos.ValueFormat2 = 0x0000
     pair_pos.Coverage = otTables.Coverage()
-    pair_pos.Coverage.glyphs = sorted(pairs)
+    pair_pos.Coverage.glyphs = lefts
     pair_pos.PairSet = []
-    for lg in sorted(pairs):
+    for lg in lefts:
         pair_set = otTables.PairSet()
         pair_set.PairValueRecord = []
         for rg, v in sorted(pairs[lg]):

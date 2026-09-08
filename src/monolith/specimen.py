@@ -1,4 +1,5 @@
 """Render the MONOLITH specimen PNGs (tight + loose ss01) from the exported TTF."""
+
 from collections.abc import Callable, Sequence
 from pathlib import Path
 
@@ -7,6 +8,7 @@ from fontTools.ttLib import TTFont
 from PIL import Image, ImageChops, ImageDraw
 
 from monolith.design import Point
+from monolith.kerning import kern_for
 from monolith.variable import instance_at_spac
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -29,8 +31,7 @@ def signed_area(c: Sequence[Point]) -> float:
 
 
 class SpecimenRenderer:
-    def __init__(self, font_path: str | Path,
-                 font: TTFont | None = None) -> None:
+    def __init__(self, font_path: str | Path, font: TTFont | None = None) -> None:
         font = font if font is not None else TTFont(str(font_path))
         self.gs = font.getGlyphSet()
         self.cmap = font.getBestCmap()
@@ -54,11 +55,24 @@ class SpecimenRenderer:
         self._cache[gname] = cs
         return cs
 
-    def render(self, showcase: str, rows: Sequence[str],
-               resolver: Callable[["SpecimenRenderer", str], str | None],
-               space_adv: float, show_scale: float, scale: float,
-               show_track: float, track: float, out: str | Path) -> None:
-        """resolver(renderer, ch) -> glyph name; spaces advance by space_adv."""
+    def render(
+        self,
+        showcase: str,
+        rows: Sequence[str],
+        resolver: Callable[["SpecimenRenderer", str], str | None],
+        space_adv: float,
+        show_scale: float,
+        scale: float,
+        show_track: float,
+        track: float,
+        out: str | Path,
+        kerns: bool = False,
+    ) -> None:
+        """resolver(renderer, ch) -> glyph name; spaces advance by space_adv.
+
+        kerns=True applies the seam-metric pair kerns between consecutive
+        non-space characters (the ss01 `.spaced` render leaves them off).
+        """
         gs = self.gs
 
         def gname_of(ch: str) -> str | None:
@@ -67,27 +81,44 @@ class SpecimenRenderer:
         def adv(gname: str | None) -> float:
             return gs[gname].width if gname in gs else 600
 
+        def kern_delta(prev: str, ch: str, sc: float) -> float:
+            return kern_for(prev, ch) * sc if kerns else 0.0
+
         def line_extent(text: str, sc: float, tr: float) -> float:
             w = 0
+            prev = ""
             for ch in text:
+                w += kern_delta(prev, ch, sc)
+                prev = ch
                 w += (space_adv if ch == " " else adv(gname_of(ch))) * sc + tr
             return w - (tr if text else 0)
 
         margin = 50
         line_h = int(700 * scale) + 70
         show_line_h = int(700 * show_scale) + 90
-        W = int(max([line_extent(s, show_scale, show_track) for s in showcase] +
-                    [line_extent(r, scale, track) for r in rows])) + 2 * margin
+        W = (
+            int(
+                max(
+                    [line_extent(s, show_scale, show_track) for s in showcase]
+                    + [line_extent(r, scale, track) for r in rows]
+                )
+            )
+            + 2 * margin
+        )
         H = margin + show_line_h + len(rows) * line_h + margin
 
         img = Image.new("RGB", (W, H), BG)
         mask = Image.new("L", (W, H), 0)
 
         def draw_line(text: str, x: float, y_base: float, sc: float, tr: float) -> float:
+            prev = ""
             for ch in text:
                 if ch == " ":
                     x += space_adv * sc + tr
+                    prev = ""
                     continue
+                x += kern_delta(prev, ch, sc)
+                prev = ch
                 gname = resolver(self, ch)
                 if gname is None:
                     continue
@@ -99,8 +130,10 @@ class SpecimenRenderer:
                     tmp = Image.new("L", (W, H), 0)
                     td = ImageDraw.Draw(tmp)
                     for i, c in enumerate(cs):
-                        td.polygon([(x + p[0] * sc, y_base - p[1] * sc) for p in c],
-                                   fill=0 if (areas[i] < 0) != (areas[body] < 0) else 255)
+                        td.polygon(
+                            [(x + p[0] * sc, y_base - p[1] * sc) for p in c],
+                            fill=0 if (areas[i] < 0) != (areas[body] < 0) else 255,
+                        )
                     mask.paste(ImageChops.lighter(mask.crop((0, 0, W, H)), tmp), (0, 0))
                 x += adv(gname) * sc + tr
             return x
@@ -132,40 +165,55 @@ def spaced(r: SpecimenRenderer, ch: str) -> str | None:
 def build_rows(cmap: dict[int, str]) -> list[str]:
     # every non-alphanumeric, non-space character the font maps
     PUNCT = "".join(chr(c) for c in sorted(cmap) if c >= 33 and not chr(c).isalnum())
-    PUNCT_ROWS = [PUNCT[i:i + 12] for i in range(0, len(PUNCT), 12)]
-    return ["MONOLITH",
-            "EXTRA BOLD BRUTALISM",
-            "ABCDEFGHIJ",
-            "KLMNOPQRS",
-            "TUVWXYZ",
-            "0123456789"] + PUNCT_ROWS
+    PUNCT_ROWS = [PUNCT[i : i + 12] for i in range(0, len(PUNCT), 12)]
+    return [
+        "MONOLITH",
+        "EXTRA BOLD BRUTALISM",
+        "ABCDEFGHIJ",
+        "KLMNOPQRS",
+        "TUVWXYZ",
+        "0123456789",
+    ] + PUNCT_ROWS
 
 
-def main(font_path: str | Path | None = None,
-         out_dir: str | Path | None = None,
-         spac: int | None = None,
-         variable_font_path: str | Path | None = None) -> None:
+def main(
+    font_path: str | Path | None = None,
+    out_dir: str | Path | None = None,
+    spac: int | None = None,
+    variable_font_path: str | Path | None = None,
+) -> None:
     font_path = Path(font_path) if font_path else DEFAULT_FONT
     out_dir = Path(out_dir) if out_dir else DEFAULT_OUT_DIR
     if not font_path.exists():
-        raise SystemExit(f"font not found: {font_path}\n"
-                         "Export MONOLITH-ExtraBold.ttf from Glyphs first (see README).")
+        raise SystemExit(
+            f"font not found: {font_path}\n"
+            "Export MONOLITH-ExtraBold.ttf from Glyphs first (see README)."
+        )
     r = SpecimenRenderer(font_path)
     rows = build_rows(r.cmap)
     out_dir.mkdir(parents=True, exist_ok=True)
-    # tight variant: font's default tight advances, extra negative tracking
-    r.render(SHOWCASE, rows, tight, 240, 0.34, 0.22, 140, -40,
-             out_dir / "specimen.png")
+    # tight variant: default tight advances, pair kerns, extra negative tracking
+    r.render(SHOWCASE, rows, tight, 240, 0.34, 0.22, 140, -40, out_dir / "specimen.png", kerns=True)
     # spaced variant: .spaced alternates (+130 advance), no extra tracking
-    r.render(SHOWCASE, rows, spaced, 240 + 130, 0.34, 0.22, 140, 0,
-             out_dir / "specimen-spaced.png")
+    r.render(SHOWCASE, rows, spaced, 240 + 130, 0.34, 0.22, 140, 0, out_dir / "specimen-spaced.png")
     if spac is not None:
         # SPAC-axis variant: advances baked from the variable font at `spac`
         vpath = Path(variable_font_path) if variable_font_path else DEFAULT_VARIABLE_FONT
         if not vpath.exists():
-            raise SystemExit(f"variable font not found: {vpath}\n"
-                             "Build it first: uv run monolith-variable")
+            raise SystemExit(
+                f"variable font not found: {vpath}\nBuild it first: uv run monolith-variable"
+            )
         inst = instance_at_spac(vpath, spac)
         rv = SpecimenRenderer(vpath, font=inst)
-        rv.render(SHOWCASE, rows, tight, rv.gs["space"].width, 0.34, 0.22, 140, 0,
-                  out_dir / f"specimen-spac{spac}.png")
+        rv.render(
+            SHOWCASE,
+            rows,
+            tight,
+            rv.gs["space"].width,
+            0.34,
+            0.22,
+            140,
+            0,
+            out_dir / f"specimen-spac{spac}.png",
+            kerns=True,
+        )
