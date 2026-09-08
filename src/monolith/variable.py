@@ -5,11 +5,16 @@ tight look (letters overlap by 30), 30 makes ink edges exactly touch, and
 130 reproduces the .spaced alternates. Outlines never vary, so the whole
 axis lives in fvar + HVAR; no Glyphs re-export is involved.
 """
+
 import tempfile
 from pathlib import Path
 
-from fontTools.designspaceLib import (AxisDescriptor, DesignSpaceDocument,
-                                      InstanceDescriptor, SourceDescriptor)
+from fontTools.designspaceLib import (
+    AxisDescriptor,
+    DesignSpaceDocument,
+    InstanceDescriptor,
+    SourceDescriptor,
+)
 from fontTools.ttLib import TTFont
 from fontTools.varLib import build as varlib_build
 from fontTools.varLib.instancer import instantiateVariableFont
@@ -27,12 +32,15 @@ SPAC_DEFAULT = 0
 TOUCHING = TIGHT_OVERLAP
 SPAC_MAX = 2 * SPACED_LSB + TIGHT_OVERLAP
 INSTANCES: tuple[tuple[int, str], ...] = (
-    (SPAC_DEFAULT, "Tight"), (TOUCHING, "Touching"), (SPAC_MAX, "Spaced"),
+    (SPAC_DEFAULT, "Tight"),
+    (TOUCHING, "Touching"),
+    (SPAC_MAX, "Spaced"),
 )
 
 
-def build_variable(tight_path: str | Path | None = None,
-                   out_path: str | Path | None = None) -> Path:
+def build_variable(
+    tight_path: str | Path | None = None, out_path: str | Path | None = None
+) -> Path:
     """Assemble fonts/MONOLITH-Variable.ttf; returns the written path."""
     tight_path = Path(tight_path) if tight_path else DEFAULT_FONT
     out_path = Path(out_path) if out_path else DEFAULT_OUT
@@ -55,8 +63,10 @@ def build_variable(tight_path: str | Path | None = None,
         # locations are keyed by axis NAME (not tag) or varLib maps every
         # source to the default and rejects the doc ("more than one base
         # master"). Tight first: it sits at the default location.
-        for fname, style, v in ((str(tight_path), "Tight", SPAC_DEFAULT),
-                                (str(loose_path), "Loose", SPAC_MAX)):
+        for fname, style, v in (
+            (str(tight_path), "Tight", SPAC_DEFAULT),
+            (str(loose_path), "Loose", SPAC_MAX),
+        ):
             src = SourceDescriptor()
             src.filename, src.name = fname, style
             src.familyName, src.styleName = "MONOLITH", style
