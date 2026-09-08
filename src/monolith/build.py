@@ -289,18 +289,24 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
     # into the variable font), written for every master so it carries into
     # all exports unchanged across axes. The .spaced alternates are not
     # kerned: fusion is not intended there.
-    kern_fail = 0
+    # NOTE: assignment must happen at the TOP level of F.kerning — writing
+    # through F.kerning[master.id][pair] mutates a throwaway copy and the
+    # kerning silently never lands in the saved file.
     for m in F.masters:
-        for (lg, rg), v in KERN_PAIRS.items():
-            try:
-                F.kerning[m.id][(lg, rg)] = v
-            except Exception:
-                kern_fail += 1
-    try:
-        written = sum(len(F.kerning[m.id]) for m in F.masters)
-        print("kern pairs written: %s (failures: %d)" % (written, kern_fail))
-    except Exception as e:
-        print("kerning write failed:", e)
+        try:
+            table = dict(F.kerning[m.id])
+        except Exception:
+            table = {}
+        table.update(KERN_PAIRS)
+        F.kerning[m.id] = table
+    stored = 0
+    for m in F.masters:
+        try:
+            stored += len(F.kerning[m.id])
+        except Exception:
+            pass
+    print("kern pairs stored: %d (expected %d per master, %d masters)"
+          % (stored, len(KERN_PAIRS), len(F.masters)))
 
     # Weight axis + ExtraBold instance: required for Text Preview / interpolation.
     # GSInstance has no weightValue in this API; axis location lives in .axes.

@@ -9,7 +9,9 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
-from monolith import build  # noqa: E402
+import importlib  # noqa: E402
+import monolith.build as build  # noqa: E402
+importlib.reload(build)  # the Macro Panel caches modules between runs
 
 f = build.run()
 f.instances[0].generate("TTF", str(REPO / "fonts" / "MONOLITH-ExtraBold.ttf"))
