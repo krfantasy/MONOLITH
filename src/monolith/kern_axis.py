@@ -39,6 +39,7 @@ KERN_MIN = 0
 KERN_DEFAULT = 0
 KERN_MAX = 100
 KERN_NAME = "Kern"
+TIGHT_INSTANCE_NAME = "Tight"
 
 
 def _new_name_id(font: TTFont) -> int:
@@ -74,6 +75,26 @@ def _add_kern_axis_to_fvar(font: TTFont) -> None:
         "fvar: KERN axis added (%d-%d-%d), %d instances pinned to default"
         % (KERN_MIN, KERN_DEFAULT, KERN_MAX, len(fvar.instances))
     )
+
+
+def _rename_default_instance(font: TTFont) -> None:
+    """Name the VF's default named instance "Tight".
+
+    The Glyphs VF export names it after the static instance ("ExtraBold"),
+    but the shipped instance set is Tight(0)/Touching(30)/Spaced(130) and
+    the static files keep their own name — so the rename lives here, in
+    the VF-finishing step. Idempotent: a re-run finds the name in place.
+    """
+    for inst in font["fvar"].instances:
+        if inst.coordinates.get("SPAC") == 0:
+            current = font["name"].getDebugName(inst.subfamilyNameID)
+            if current == TIGHT_INSTANCE_NAME:
+                return
+            name_id = _new_name_id(font)
+            _add_name(font, TIGHT_INSTANCE_NAME, name_id)
+            inst.subfamilyNameID = name_id
+            print("fvar: default instance %r renamed to %r" % (current, TIGHT_INSTANCE_NAME))
+            return
 
 
 def _add_kern_axis_to_stat(font: TTFont, axis_name_id: int) -> None:
@@ -247,6 +268,7 @@ def build_kern_axis(src: str | Path = RAW_VF, out: str | Path = SHIPPED_VF) -> T
     # axes (tuples get a (0,0,0) KERN entry — outlines ignore kerning).
     _ = font["gvar"]
     _add_kern_axis_to_fvar(font)
+    _rename_default_instance(font)
     stat_table = font.get("STAT")
     if stat_table is not None:
         axis_name_id = _new_name_id(font)

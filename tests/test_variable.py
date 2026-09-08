@@ -58,6 +58,19 @@ def test_named_instances_stay_in_range_and_kern_off(vf: TTFont) -> None:
     assert all(i.coordinates["KERN"] == 0 for i in vf["fvar"].instances)
 
 
+def test_named_instances_pinned_by_name(vf: TTFont) -> None:
+    """The instance set is Tight/Touching/Spaced — the Glyphs export calls
+    the default "ExtraBold" (its static instance), and kern_axis renames it."""
+    got = {
+        vf["name"].getDebugName(i.subfamilyNameID): (
+            float(i.coordinates["SPAC"]),
+            float(i.coordinates["KERN"]),
+        )
+        for i in vf["fvar"].instances
+    }
+    assert got == {"Tight": (0.0, 0.0), "Touching": (30.0, 0.0), "Spaced": (130.0, 0.0)}
+
+
 def test_kern_wiring_store_and_feature(vf: TTFont) -> None:
     """GDEF must carry the delta store and GPOS a kern lookup driven by it."""
     store = vf["GDEF"].table.VarStore

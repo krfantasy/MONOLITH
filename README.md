@@ -39,7 +39,8 @@ value is extra advance per glyph, in font units:
 | **130** | fully loose — matches the `.spaced` alternates |
 
 - **CSS:** `font-variation-settings: "SPAC" 30;`
-- Named instances (*Touching*, *Spaced*) also appear in app style menus.
+- Named instances (*Tight*, *Touching*, *Spaced*) also appear in app style
+  menus.
 - Every glyph gets the same delta, `space` included; combining `SPAC` with
   ss01 double-spaces (both add their delta).
 
