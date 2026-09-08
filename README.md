@@ -38,7 +38,7 @@ value is extra advance per glyph, in font units:
 | **130** | fully loose — matches the `.spaced` alternates |
 
 - **CSS:** `font-variation-settings: "SPAC" 30;`
-- Named instances also appear in app style menus: *Tight*, *Touching*, *Spaced*.
+- Named instances (*Touching*, *Spaced*) also appear in app style menus.
 - Every glyph gets the same delta, `space` included; combining `SPAC` with
   ss01 double-spaces (both add their delta).
 
@@ -62,14 +62,18 @@ The font source is [`MONOLITH.glyphs`](MONOLITH.glyphs). The letterforms live
 as pure Python data in [`src/monolith/design.py`](src/monolith/design.py);
 the Glyphs-side builder turns that data into the `.glyphs` file.
 
-**Regenerate the font source** (requires [Glyphs](https://glyphsapp.com)):
+**Regenerate the fonts** (requires [Glyphs](https://glyphsapp.com) — the whole
+generation path is Glyphs; fontTools is only used downstream by tests and
+specimens):
 
 1. Open Glyphs, then Window ▸ Macro Panel (⌥⌘M).
 2. Paste the contents of [`scripts/macro_bootstrap.py`](scripts/macro_bootstrap.py)
    (adjust the one path line to your checkout) and press **Run**.
-   `MONOLITH.glyphs` is rewritten in place.
-3. Export via File ▸ Export (or uncomment the `generate(...)` lines in the
-   bootstrap to export straight into `fonts/`).
+   `MONOLITH.glyphs` is rewritten in place — including the two `SPAC` masters
+   and the `kern` feature — and all three binaries are exported straight into
+   `fonts/`: the TTF/OTF statics and `MONOLITH-Variable.ttf`. If the
+   variable-font export via the API fails, export it by hand: File ▸ Export ▸
+   **Variable**, save as `fonts/MONOLITH-Variable.ttf`.
 
 **Regenerate the specimen images** (no Glyphs needed):
 
@@ -79,18 +83,11 @@ uv run monolith-specimen        # writes specimens/specimen{,-spaced}.png
 uv run monolith-specimen --spac 30   # + specimens/specimen-spac30.png (needs the variable font)
 ```
 
-**Build the variable font** (no Glyphs needed — outlines never vary, only
-metrics; this assembles fvar/HVAR with fontTools from the exported static):
-
-```sh
-uv run monolith-variable        # writes fonts/MONOLITH-Variable.ttf
-```
-
 ## Development
 
 ```sh
 uv sync
-uv run pytest          # design invariants + SPAC font + render smoke test (no Glyphs)
+uv run pytest          # design invariants + SPAC font + shaping + render smoke test (no Glyphs)
 uv run ruff check .
 ```
 
@@ -99,6 +96,8 @@ full printable-ASCII coverage, a minimum-thickness tripwire on diagonal
 strokes, counter presence for the confusable-prone letters, and the
 tight/spaced advance math. `tests/test_variable.py` guards the SPAC axis:
 axis metadata, per-glyph advance math at 0/30/130, and outline invariance.
+`tests/test_shaping.py` runs the exported binaries through HarfBuzz to prove
+the `kern` feature and `SPAC` axis actually apply.
 
 ## License
 

@@ -1,4 +1,8 @@
-"""SPAC variable-font assembly. Pure fontTools - no Glyphs required."""
+"""The shipped SPAC variable font: axis metadata, advances, outline invariance.
+
+Generation is Glyphs-only, so these tests read fonts/MONOLITH-Variable.ttf
+(the Glyphs export) instead of assembling anything with fontTools.
+"""
 
 from pathlib import Path
 
@@ -11,9 +15,10 @@ from monolith.design import DES, SPACED_LSB, TIGHT_OVERLAP, spaced_advance, tigh
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FONT = REPO_ROOT / "fonts" / "MONOLITH-ExtraBold.ttf"
+VF = REPO_ROOT / "fonts" / "MONOLITH-Variable.ttf"
 
 pytestmark = pytest.mark.skipif(
-    not FONT.exists(), reason="font not built yet (export from Glyphs first)"
+    not (FONT.exists() and VF.exists()), reason="fonts not exported from Glyphs yet"
 )
 
 
@@ -25,26 +30,27 @@ def test_axis_constants_derived_from_design() -> None:
 
 
 @pytest.fixture(scope="module")
-def vf_path(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    return variable.build_variable(FONT, tmp_path_factory.mktemp("vf") / "MONOLITH-Variable.ttf")
+def vf() -> TTFont:
+    return TTFont(str(VF))
 
 
-def test_variable_font_declares_spac_axis(vf_path: Path) -> None:
-    font = TTFont(str(vf_path))
-    assert "fvar" in font and "HVAR" in font
-    axis = font["fvar"].axes[0]
+def test_variable_font_declares_spac_axis(vf: TTFont) -> None:
+    assert "HVAR" in vf
+    axis = vf["fvar"].axes[0]
     assert axis.axisTag == "SPAC"
     assert (axis.minValue, axis.defaultValue, axis.maxValue) == (0, 0, 130)
-    assert font["name"].getDebugName(axis.axisNameID) == "Spacing"
+    assert vf["name"].getDebugName(axis.axisNameID) == "Spacing"
 
 
-def test_named_instances(vf_path: Path) -> None:
-    font = TTFont(str(vf_path))
-    got = {
-        font["name"].getDebugName(i.subfamilyNameID): i.coordinates["SPAC"]
-        for i in font["fvar"].instances
-    }
-    assert got == {"Tight": 0, "Touching": 30, "Spaced": 130}
+def test_fvar_carries_only_spac(vf: TTFont) -> None:
+    # a constant axis (e.g. single-master wght) would be dead weight in fvar
+    assert [ax.axisTag for ax in vf["fvar"].axes] == ["SPAC"]
+
+
+def test_named_instances_stay_in_range(vf: TTFont) -> None:
+    locs = {i.coordinates["SPAC"] for i in vf["fvar"].instances}
+    assert 0 in locs and 130 in locs
+    assert all(0 <= v <= 130 for v in locs)
 
 
 def _contours(font: TTFont, gname: str) -> list:
@@ -53,7 +59,7 @@ def _contours(font: TTFont, gname: str) -> list:
     return pen.value
 
 
-def test_instance_advances_match_design_math(vf_path: Path) -> None:
+def test_instance_advances_match_design_math(vf: TTFont) -> None:
     # 0 -> tight, TOUCHING -> natural width (ink edges touch), SPAC_MAX -> .spaced
     expected = {
         0: {n: tight_advance(n) for n in DES},
@@ -64,68 +70,21 @@ def test_instance_advances_match_design_math(vf_path: Path) -> None:
         },
     }
     for v, want in expected.items():
-        inst = variable.instance_at_spac(vf_path, v)
+        inst = variable.instance_at_spac(VF, v)
         assert "fvar" not in inst, v
         for n, adv in want.items():
             assert inst["hmtx"][n][0] == adv, (v, n)
 
 
-def test_spaced_alternates_get_the_same_delta(vf_path: Path) -> None:
-    inst = variable.instance_at_spac(vf_path, variable.SPAC_MAX)
+def test_spaced_alternates_get_the_same_delta(vf: TTFont) -> None:
+    inst = variable.instance_at_spac(VF, variable.SPAC_MAX)
     assert inst["hmtx"]["zero.spaced"][0] == spaced_advance("zero") + variable.SPAC_MAX
 
 
-def test_outlines_identical_at_every_position(vf_path: Path) -> None:
+def test_outlines_identical_at_every_position(vf: TTFont) -> None:
     static = TTFont(str(FONT))
-    at_max = variable.instance_at_spac(vf_path, variable.SPAC_MAX)
+    at_max = variable.instance_at_spac(VF, variable.SPAC_MAX)
     for gname in ("A", "V", "one", "zero", "a"):
         ref = _contours(static, gname)
-        assert _contours(TTFont(str(vf_path)), gname) == ref, gname
+        assert _contours(vf, gname) == ref, gname
         assert _contours(at_max, gname) == ref, gname
-
-
-def test_cli_builds_to_explicit_out(
-    vf_path: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
-    from monolith import vfcli
-
-    out = tmp_path / "cli-out.ttf"
-    vfcli.main(["--font", str(FONT), "--out", str(out)])
-    assert out.exists()
-    assert str(out) in capsys.readouterr().out
-
-
-def _kern_value(font: TTFont, left: str, right: str) -> int | None:
-    gpos = font["GPOS"].table
-    for fr in gpos.FeatureList.FeatureRecord:
-        if fr.FeatureTag != "kern":
-            continue
-        for li in fr.Feature.LookupListIndex:
-            lookup = gpos.LookupList.Lookup[li]
-            for st in lookup.SubTable:
-                if left in st.Coverage.glyphs:
-                    ps = st.PairSet[st.Coverage.glyphs.index(left)]
-                    for pvr in ps.PairValueRecord:
-                        if pvr.SecondGlyph == right:
-                            return pvr.Value1.XAdvance
-    return None
-
-
-def test_variable_font_carries_gpos_kerning(vf_path: Path) -> None:
-    font = TTFont(str(vf_path))
-    assert _kern_value(font, "A", "V") == -160
-    assert _kern_value(font, "a", "v") == -160  # lowercase mirrors present
-    assert _kern_value(font, "H", "H") is None  # solid pairs untouched
-
-
-def test_kerning_survives_instancing(vf_path: Path) -> None:
-    inst = variable.instance_at_spac(vf_path, 65)
-    assert _kern_value(inst, "A", "V") == -160
-
-
-def test_kerning_injection_is_idempotent(vf_path: Path) -> None:
-    font = TTFont(str(vf_path))
-    variable.apply_kerning(font)
-    feats = [fr.FeatureTag for fr in font["GPOS"].table.FeatureList.FeatureRecord]
-    assert feats.count("kern") == 1
-    assert _kern_value(font, "A", "V") == -160

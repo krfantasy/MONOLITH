@@ -27,7 +27,9 @@ def test_render_spac_row(tmp_path: Path) -> None:
     from monolith import variable
     from monolith.specimen import SpecimenRenderer, tight
 
-    vf = variable.build_variable(FONT, tmp_path / "vf.ttf")
+    vf = REPO_ROOT / "fonts" / "MONOLITH-Variable.ttf"
+    if not vf.exists():
+        pytest.skip("variable font not exported from Glyphs yet")
     inst = variable.instance_at_spac(vf, 30)
     r = SpecimenRenderer(vf, font=inst)
     out = tmp_path / "tiny30.png"

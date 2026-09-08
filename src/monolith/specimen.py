@@ -201,7 +201,8 @@ def main(
         vpath = Path(variable_font_path) if variable_font_path else DEFAULT_VARIABLE_FONT
         if not vpath.exists():
             raise SystemExit(
-                f"variable font not found: {vpath}\nBuild it first: uv run monolith-variable"
+                f"variable font not found: {vpath}\n"
+                "Export it from Glyphs: File > Export > Variable (see README)"
             )
         inst = instance_at_spac(vpath, spac)
         rv = SpecimenRenderer(vpath, font=inst)

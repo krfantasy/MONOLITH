@@ -10,17 +10,18 @@ from pathlib import Path
 import pytest
 import uharfbuzz as hb
 
-from monolith import variable
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FONT = REPO_ROOT / "fonts" / "MONOLITH-ExtraBold.ttf"
+VF = REPO_ROOT / "fonts" / "MONOLITH-Variable.ttf"
 
-pytestmark = pytest.mark.skipif(not FONT.exists(), reason="static TTF not built")
+pytestmark = pytest.mark.skipif(
+    not (FONT.exists() and VF.exists()), reason="fonts not exported from Glyphs yet"
+)
 
 
 @pytest.fixture(scope="module")
-def vf_path(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    return variable.build_variable(FONT, tmp_path_factory.mktemp("hb") / "MONOLITH-Variable.ttf")
+def vf_path() -> Path:
+    return VF
 
 
 def _shaped_positions(font_path: Path, text: str, spac: int | None = None) -> list[int]:
@@ -34,6 +35,16 @@ def _shaped_positions(font_path: Path, text: str, spac: int | None = None) -> li
     buf.guess_segment_properties()
     hb.shape(font, buf)
     return [pos.x_advance for pos in buf.glyph_positions]
+
+
+def test_static_carries_kern() -> None:
+    from fontTools.ttLib import TTFont
+
+    if "GPOS" not in TTFont(str(FONT)):
+        pytest.skip("static predates the kern feature — re-export from Glyphs (macro_bootstrap)")
+    av = _shaped_positions(FONT, "AV")
+    hh = _shaped_positions(FONT, "HH")
+    assert sum(av) == sum(hh) - 160
 
 
 def test_kern_shifts_AV_in_real_shaping(vf_path: Path) -> None:

@@ -8,10 +8,10 @@ from pathlib import Path
 from typing import Any
 
 from GlyphsApp import (GSComponent, GSFeature, GSGlyph, GSInstance, GSLINE,
-                       GSLayer, GSNode, GSAxis, GSPath, Glyphs)
+                       GSLayer, GSNode, GSAxis, GSFontMaster, GSPath, Glyphs)
 
-from monolith.design import (DES, LOWERCASE, SPACED_LSB, Point, Rect, Shape,
-                             substitution_names, tight_advance)
+from monolith.design import (DES, LOWERCASE, SPACED_LSB, TIGHT_OVERLAP, Point,
+                             Rect, Shape, substitution_names, tight_advance)
 from monolith.kerning import KERN_PAIRS
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -285,40 +285,70 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
     set_feature(F, "salt", "\n".join(subs))
     print("features ss01/salt written with %d substitutions" % len(subs))
 
-    # pair kerning from the seam metric (the same table variable.py injects
-    # into the variable font), written for every master so it carries into
-    # all exports unchanged across axes. The .spaced alternates are not
-    # kerned: fusion is not intended there.
-    # NOTE: Glyphs 3 kerning is NESTED per master: {left: {right: value}}.
-    # A flat {(left, right): value} dict is accepted but crashes F.save()
-    # with "OC_BuiltinPythonArray hasPrefix:".
-    for m in F.masters:
+    # pair kerning from the seam metric, written as kern feature code
+    # (pos A V -160). Feature code is the only write path that survives
+    # F.save() here — the kerning-panel API poisons the document — and
+    # Glyphs compiles it into the statics and the variable font. The
+    # .spaced alternates stay unkerned: GSUB runs before GPOS, so any
+    # glyph substituted for a .spaced alternate drops out of every pair.
+    kern_lines = ["# seam-metric kerning (monolith.kerning.KERN_PAIRS)"]
+    for (lg, rg), v in sorted(KERN_PAIRS.items()):
+        kern_lines.append("pos %s %s %d;" % (lg, rg, v))
+    set_feature(F, "kern", "\n".join(kern_lines))
+    print("kern feature written with %d pairs" % len(KERN_PAIRS))
+
+    # SPAC axis: spacing as a real axis. The second master carries the same
+    # outlines with every advance wider by SPAC_MAX, so the variable export
+    # reduces to fvar + HVAR. The single-master Weight axis from the Text
+    # Preview experiment is dropped — a constant axis has no place in fvar.
+    spac_max = 2 * SPACED_LSB + TIGHT_OVERLAP
+    if not any(getattr(ax, "axisTag", "") == "SPAC" for ax in F.axes):
+        ax = GSAxis()
+        ax.name = "Spacing"
+        ax.axisTag = "SPAC"
+        F.axes.append(ax)
+    for ax in list(F.axes):
+        if getattr(ax, "axisTag", "") == "wght":
+            try:
+                F.axes.remove(ax)
+                print("dropped single-master Weight axis")
+            except Exception as e:
+                print("could not drop Weight axis:", e)
+
+    tight_master = F.masters[0]
+    if len(F.masters) < 2:
+        loose = GSFontMaster()
+        loose.name = "Spaced"
+        for attr in ("ascender", "descender", "capHeight", "xHeight"):
+            try:
+                setattr(loose, attr, getattr(tight_master, attr))
+            except Exception:
+                pass
+        F.masters.append(loose)
+    else:
+        loose = F.masters[1]
+    copied = 0
+    for g in F.glyphs:
+        for ly in list(g.layers):
+            if ly.associatedMasterId == loose.id:
+                g.layers.remove(ly)
+        src = master_layer(F, tight_master, g)
+        nl = src.copy()
+        nl.associatedMasterId = loose.id
         try:
-            table = dict(F.kerning[m.id])
-        except Exception:
-            table = {}
-        for (lg, rg), v in KERN_PAIRS.items():
-            inner = dict(table.get(lg) or {})
-            inner[rg] = v
-            table[lg] = inner
-        F.kerning[m.id] = table
-    stored = 0
-    for m in F.masters:
-        try:
-            stored += sum(len(inner) for inner in F.kerning[m.id].values())
+            nl.layerId = loose.id
         except Exception:
             pass
-    print("kern pairs stored: %d (expected %d per master, %d masters)"
-          % (stored, len(KERN_PAIRS), len(F.masters)))
+        nl.width = src.width + spac_max
+        g.layers.append(nl)
+        copied += 1
+    tight_master.axes = [0]
+    loose.axes = [spac_max]
+    print("SPAC axis set: %d glyphs mirrored into the Spaced master (+%d advance)"
+          % (copied, spac_max))
 
-    # Weight axis + ExtraBold instance: required for Text Preview / interpolation.
-    # GSInstance has no weightValue in this API; axis location lives in .axes.
-    if not len(F.axes):
-        ax = GSAxis()
-        ax.name = "Weight"
-        ax.axisTag = "wght"
-        F.axes.append(ax)
-    F.masters[0].axes = [800]
+    # instances: ExtraBold is the static export (SPAC 0 keeps the shipped
+    # tight look); Touching/Spaced become the variable font's named instances.
     inst = None
     for i in F.instances:
         if i.name == "ExtraBold":
@@ -328,8 +358,20 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
         inst = GSInstance()
         inst.name = "ExtraBold"
         F.instances.append(inst)
-    inst.axes = [800]
-    print("Weight axis set, instance ExtraBold located at 800")
+    inst.axes = [0]
+    for iname, ival in (("Touching", TIGHT_OVERLAP), ("Spaced", spac_max)):
+        found = None
+        for i in F.instances:
+            if i.name == iname:
+                found = i
+                break
+        if found is None:
+            found = GSInstance()
+            found.name = iname
+            F.instances.append(found)
+        found.axes = [ival]
+    print("instances: ExtraBold/Touching/Spaced at SPAC 0/%d/%d"
+          % (TIGHT_OVERLAP, spac_max))
 
     # winding sanity check on O: wall=1, hole=0; else flip every path
     o_layer = master_layer(F, master, F.glyphs["O"])
