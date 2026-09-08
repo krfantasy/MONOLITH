@@ -137,7 +137,10 @@ KERN_PAIRS: dict[tuple[str, str], int] = {
 
 
 def kern_for(left: str, right: str) -> int:
-    """Lookup with zero default; falls back case-insensitively."""
+    """Lookup API for KERN_PAIRS: zero default, spaces never kern, lowercase
+    falls back to the cap pair (lowercase renders as the caps). Kept as the
+    readable way to query the table — tests and design checks go through it
+    rather than poking the dict directly."""
     if left == " " or right == " ":
         return 0
     k = KERN_PAIRS.get((left, right))
