@@ -45,6 +45,14 @@ class SpecimenRenderer:
         self.cmap = font.getBestCmap()
         self.order = font.getGlyphOrder()
         self._cache: dict[str, list[list[Point]]] = {}
+        self._hb_font: hb.Font | None = None
+
+    def _hb(self) -> hb.Font:
+        """One HarfBuzz font per renderer; shape() sets variations per call."""
+        if self._hb_font is None:
+            blob = hb.Blob.from_file_path(str(self.font_path))
+            self._hb_font = hb.Font(hb.Face(blob))
+        return self._hb_font
 
     def contours(self, gname: str) -> list[list[Point]]:
         if gname in self._cache:
@@ -70,11 +78,8 @@ class SpecimenRenderer:
         variations: dict[str, float] | None = None,
     ) -> list[tuple[str, float, float, float]]:
         """Shape text with HarfBuzz: [(glyph_name, x_advance, x_offset, y_offset)]."""
-        blob = hb.Blob.from_file_path(str(self.font_path))
-        face = hb.Face(blob)
-        font = hb.Font(face)
-        if variations:
-            font.set_variations(variations)
+        font = self._hb()
+        font.set_variations(variations or {})  # {} resets to the defaults
         buf = hb.Buffer()
         buf.add_str(text)
         buf.guess_segment_properties()
@@ -83,6 +88,34 @@ class SpecimenRenderer:
             (self.order[info.codepoint], pos.x_advance, pos.x_offset, pos.y_offset)
             for info, pos in zip(buf.glyph_infos, buf.glyph_positions)
         ]
+
+    def _paint_run(
+        self,
+        run: list[tuple[str, float, float, float]],
+        x: float,
+        y_base: float,
+        sc: float,
+        W: int,
+        H: int,
+        mask: Image.Image,
+    ) -> float:
+        """Paint one shaped run into `mask`; returns the pen x after the run."""
+        for gname, adv, xo, yo in run:
+            cs = self.contours(gname)
+            if cs:
+                # ink vs hole by winding: holes wind opposite to the body
+                areas = [signed_area(c) for c in cs]
+                body = max(range(len(cs)), key=lambda i: abs(areas[i]))
+                tmp = Image.new("L", (W, H), 0)
+                td = ImageDraw.Draw(tmp)
+                for i, c in enumerate(cs):
+                    td.polygon(
+                        [(x + xo * sc + p[0] * sc, y_base - yo * sc - p[1] * sc) for p in c],
+                        fill=0 if (areas[i] < 0) != (areas[body] < 0) else 255,
+                    )
+                mask.paste(ImageChops.lighter(mask.crop((0, 0, W, H)), tmp), (0, 0))
+            x += adv * sc
+        return x
 
     def render(
         self,
@@ -111,30 +144,14 @@ class SpecimenRenderer:
         img = Image.new("RGB", (W, H), BG)
         mask = Image.new("L", (W, H), 0)
 
-        def draw_shaped(text: str, x: float, y_base: float, sc: float) -> float:
-            for gname, adv, xo, yo in self.shape(text, features, variations):
-                cs = self.contours(gname)
-                if cs:
-                    # ink vs hole by winding: holes wind opposite to the body
-                    areas = [signed_area(c) for c in cs]
-                    body = max(range(len(cs)), key=lambda i: abs(areas[i]))
-                    tmp = Image.new("L", (W, H), 0)
-                    td = ImageDraw.Draw(tmp)
-                    for i, c in enumerate(cs):
-                        td.polygon(
-                            [(x + xo * sc + p[0] * sc, y_base - yo * sc - p[1] * sc) for p in c],
-                            fill=0 if (areas[i] < 0) != (areas[body] < 0) else 255,
-                        )
-                    mask.paste(ImageChops.lighter(mask.crop((0, 0, W, H)), tmp), (0, 0))
-                x += adv * sc
-            return x
-
         y = margin + int(700 * show_scale)
-        draw_shaped(showcase, margin, y, show_scale)
+        self._paint_run(
+            self.shape(showcase, features, variations), margin, y, show_scale, W, H, mask
+        )
 
         y = margin + show_line_h + int(700 * scale)
         for row in rows:
-            draw_shaped(row, margin, y, scale)
+            self._paint_run(self.shape(row, features, variations), margin, y, scale, W, H, mask)
             y += line_h
 
         img.paste(FG, (0, 0), mask)
@@ -175,30 +192,10 @@ class SpecimenRenderer:
         img = Image.new("RGB", (W, H), BG)
         mask = Image.new("L", (W, H), 0)
 
-        def draw_run(
-            run: list[tuple[str, float, float, float]], x: float, y_base: float, sc: float
-        ) -> float:
-            for gname, adv, xo, yo in run:
-                cs = self.contours(gname)
-                if cs:
-                    # ink vs hole by winding: holes wind opposite to the body
-                    areas = [signed_area(c) for c in cs]
-                    body = max(range(len(cs)), key=lambda i: abs(areas[i]))
-                    tmp = Image.new("L", (W, H), 0)
-                    td = ImageDraw.Draw(tmp)
-                    for i, c in enumerate(cs):
-                        td.polygon(
-                            [(x + xo * sc + p[0] * sc, y_base - yo * sc - p[1] * sc) for p in c],
-                            fill=0 if (areas[i] < 0) != (areas[body] < 0) else 255,
-                        )
-                    mask.paste(ImageChops.lighter(mask.crop((0, 0, W, H)), tmp), (0, 0))
-                x += adv * sc
-            return x
-
         for i, (v, run) in enumerate(runs):
             y_base = margin + int(700 * scale) + i * row_h
-            draw_run(self.shape(f"{axis_tag} {v}"), margin, y_base, label_scale)
-            draw_run(run, margin + label_w + label_gap, y_base, scale)
+            self._paint_run(self.shape(f"{axis_tag} {v}"), margin, y_base, label_scale, W, H, mask)
+            self._paint_run(run, margin + label_w + label_gap, y_base, scale, W, H, mask)
 
         img.paste(FG, (0, 0), mask)
         img.save(str(out))
