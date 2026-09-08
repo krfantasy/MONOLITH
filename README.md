@@ -70,10 +70,11 @@ specimens):
 2. Paste the contents of [`scripts/macro_bootstrap.py`](scripts/macro_bootstrap.py)
    (adjust the one path line to your checkout) and press **Run**.
    `MONOLITH.glyphs` is rewritten in place — including the two `SPAC` masters
-   and the `kern` feature — and all three binaries are exported straight into
-   `fonts/`: the TTF/OTF statics and `MONOLITH-Variable.ttf`. If the
-   variable-font export via the API fails, export it by hand: File ▸ Export ▸
-   **Variable**, save as `fonts/MONOLITH-Variable.ttf`.
+   and the `kern` feature — and the TTF/OTF statics are exported straight into
+   `fonts/`. The variable font can't be scripted in Glyphs 3.5 (`generate(
+   Format=VARIABLE)` is broken): export it by hand via File ▸ Export ▸
+   **Variable Fonts** into `fonts/`, then rename `MONOLITHVF.ttf` to
+   `MONOLITH-Variable.ttf`.
 
 **Regenerate the specimen images** (no Glyphs needed):
 

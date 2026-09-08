@@ -22,22 +22,11 @@ static.generate("TTF", str(REPO / "fonts" / "MONOLITH-ExtraBold.ttf"))
 static.generate("OTF", str(REPO / "fonts" / "MONOLITH-ExtraBold.otf"))
 print("statics exported")
 
-try:
-    from GlyphsApp import VARIABLE
-except ImportError:
-    VARIABLE = "variable"
-try:
-    kwargs: dict[str, object] = {"Fontpath": str(REPO / "fonts" / "MONOLITH-Variable.ttf")}
-    try:
-        from GlyphsApp import PLAIN
-
-        kwargs["Containers"] = [PLAIN]
-    except ImportError:
-        pass
-    static.generate(Format=VARIABLE, **kwargs)
-    print("VARIABLE FONT EXPORTED")
-except Exception as e:
-    print("VF export via API failed: %s" % e)
-    print("export manually: File > Export (Cmd+E) > Variable, save as")
-    print("  %s" % (REPO / "fonts" / "MONOLITH-Variable.ttf"))
+# The variable font cannot be scripted in Glyphs 3.5: instance.generate(
+# Format=VARIABLE) returns bogus "." paths and writes nothing. Export by
+# hand: File > Export (Cmd+E) > Variable Fonts tab (.ttf) > Next > this
+# repo's fonts/ folder. Glyphs names the file MONOLITHVF.ttf — then:
+#   mv fonts/MONOLITHVF.ttf fonts/MONOLITH-Variable.ttf
+print("NOW EXPORT THE VF BY HAND: File > Export > Variable Fonts")
+print("into %s, then rename MONOLITHVF.ttf -> MONOLITH-Variable.ttf" % (REPO / "fonts"))
 print("REGEN + EXPORT DONE")

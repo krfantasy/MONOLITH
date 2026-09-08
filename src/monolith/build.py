@@ -3,15 +3,36 @@
 IMPORT ONLY INSIDE GLYPHS (Macro Panel / Glyphs script): GlyphsApp exists
 only in Glyphs' embedded Python. Run via scripts/macro_bootstrap.py.
 """
+
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from GlyphsApp import (GSComponent, GSFeature, GSGlyph, GSInstance, GSLINE,
-                       GSLayer, GSNode, GSAxis, GSFontMaster, GSPath, Glyphs)
+from GlyphsApp import (
+    GSComponent,
+    GSFeature,
+    GSGlyph,
+    GSInstance,
+    GSLINE,
+    GSLayer,
+    GSNode,
+    GSAxis,
+    GSFontMaster,
+    GSPath,
+    Glyphs,
+)
 
-from monolith.design import (DES, LOWERCASE, SPACED_LSB, TIGHT_OVERLAP, Point,
-                             Rect, Shape, substitution_names, tight_advance)
+from monolith.design import (
+    DES,
+    LOWERCASE,
+    SPACED_LSB,
+    TIGHT_OVERLAP,
+    Point,
+    Rect,
+    Shape,
+    substitution_names,
+    tight_advance,
+)
 from monolith.kerning import KERN_PAIRS
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -32,8 +53,12 @@ def _signed_area(pts: Sequence[Point]) -> float:
 
 def _shape_points(shape: Shape) -> list[Point]:
     if isinstance(shape, Rect):
-        return [(shape.x0, shape.y0), (shape.x1, shape.y0),
-                (shape.x1, shape.y1), (shape.x0, shape.y1)]
+        return [
+            (shape.x0, shape.y0),
+            (shape.x1, shape.y0),
+            (shape.x1, shape.y1),
+            (shape.x0, shape.y1),
+        ]
     return list(shape.points)
 
 
@@ -50,7 +75,7 @@ def adapt(shape: Shape) -> GSPath:
         pts = list(reversed(pts))
     p = GSPath()
     p.closed = True
-    for (x, y) in pts:
+    for x, y in pts:
         nd = GSNode()
         nd.type = GSLINE
         nd.position = (x, y)
@@ -67,14 +92,15 @@ def setup_font(F: Any, master: Any) -> None:
             F.unitsPerEm = 1000
         except Exception as e:
             print("upm:", e)
-    for attr, val in (("capHeight", 700), ("xHeight", 700),
-                      ("ascender", 800), ("descender", -200)):
+    for attr, val in (("capHeight", 700), ("xHeight", 700), ("ascender", 800), ("descender", -200)):
         try:
             setattr(master, attr, val)
         except Exception as e:
             print("metric %s: %s" % (attr, e))
     try:
-        master.weightValue = 800  # does not exist in Glyphs 3.5; the axes block below is the real mechanism
+        master.weightValue = (
+            800  # does not exist in Glyphs 3.5; the axes block below is the real mechanism
+        )
     except Exception:
         try:
             master.weight = "ExtraBold"
@@ -279,8 +305,7 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
         layer.width = master_layer(F, master, F.glyphs[up + ".spaced"]).width
 
     subs = ["sub %s by %s.spaced;" % (n, n) for n in substitution_names()]
-    feature_code = ('featureNames {\n  name "Loose spacing";\n};\n'
-                    + "\n".join(subs))
+    feature_code = 'featureNames {\n  name "Loose spacing";\n};\n' + "\n".join(subs)
     set_feature(F, "ss01", feature_code)
     set_feature(F, "salt", "\n".join(subs))
     print("features ss01/salt written with %d substitutions" % len(subs))
@@ -333,19 +358,40 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
             if ly.associatedMasterId == loose.id:
                 g.layers.remove(ly)
         src = master_layer(F, tight_master, g)
-        nl = src.copy()
-        nl.associatedMasterId = loose.id
-        try:
-            nl.layerId = loose.id
-        except Exception:
-            pass
-        nl.width = src.width + spac_max
-        g.layers.append(nl)
+        # g.layers[master.id] returns the REGISTERED master layer (layerId ==
+        # master.id), auto-creating it. This is the only bridge access that
+        # produces a master layer: copying a layer and assigning layerId does
+        # NOT stick — Glyphs regenerates the id and the master ends up with
+        # an empty auto-created layer, which makes every glyph incompatible
+        # for variable-font export.
+        dst = g.layers[loose.id]
+        clear_shapes(dst)
+        for p in src.paths:
+            np_ = GSPath()
+            np_.closed = True
+            for nd in p.nodes:
+                nn = GSNode()
+                nn.type = nd.type
+                nn.position = (nd.position.x, nd.position.y)
+                np_.nodes.append(nn)
+            dst.paths.append(np_)
+        for c in src.components:
+            base = getattr(c, "name", None) or c.glyphName
+            dst.components.append(GSComponent(base))
+        dst.width = src.width + spac_max
         copied += 1
+    registered = sum(
+        1 for g in F.glyphs if any(ly.layerId == loose.id and len(ly.shapes) for ly in g.layers)
+    )
     tight_master.axes = [0]
     loose.axes = [spac_max]
-    print("SPAC axis set: %d glyphs mirrored into the Spaced master (+%d advance)"
-          % (copied, spac_max))
+    print(
+        "SPAC axis set: %d glyphs mirrored into the Spaced master (+%d advance)"
+        % (copied, spac_max)
+    )
+    print("Spaced master layers holding shapes: %d of %d glyphs" % (registered, len(F.glyphs)))
+    if registered != len(F.glyphs):
+        print("WARNING: Spaced master incomplete — variable export will fail")
 
     # instances: ExtraBold is the static export (SPAC 0 keeps the shipped
     # tight look); Touching/Spaced become the variable font's named instances.
@@ -370,8 +416,7 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
             found.name = iname
             F.instances.append(found)
         found.axes = [ival]
-    print("instances: ExtraBold/Touching/Spaced at SPAC 0/%d/%d"
-          % (TIGHT_OVERLAP, spac_max))
+    print("instances: ExtraBold/Touching/Spaced at SPAC 0/%d/%d" % (TIGHT_OVERLAP, spac_max))
 
     # winding sanity check on O: wall=1, hole=0; else flip every path
     o_layer = master_layer(F, master, F.glyphs["O"])
@@ -387,8 +432,10 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
                     flipped += 1
         print("REVERSED %s paths (direction fix)" % flipped)
         o_layer = master_layer(F, master, F.glyphs["O"])
-        print("after fix: wall=%s hole=%s" % (winding_at(o_layer, 60.0, 350.0),
-                                              winding_at(o_layer, 310.0, 350.0)))
+        print(
+            "after fix: wall=%s hole=%s"
+            % (winding_at(o_layer, 60.0, 350.0), winding_at(o_layer, 310.0, 350.0))
+        )
 
     save_path = Path(save_path) if save_path else DEFAULT_SAVE
     try:
