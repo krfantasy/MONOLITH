@@ -12,6 +12,7 @@ from GlyphsApp import (GSComponent, GSFeature, GSGlyph, GSInstance, GSLINE,
 
 from monolith.design import (DES, LOWERCASE, SPACED_LSB, Point, Rect, Shape,
                              substitution_names, tight_advance)
+from monolith.kerning import KERN_PAIRS
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_SAVE = REPO_ROOT / "MONOLITH.glyphs"
@@ -283,6 +284,23 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
     set_feature(F, "ss01", feature_code)
     set_feature(F, "salt", "\n".join(subs))
     print("features ss01/salt written with %d substitutions" % len(subs))
+
+    # pair kerning from the seam metric (the same table variable.py injects
+    # into the variable font), written for every master so it carries into
+    # all exports unchanged across axes. The .spaced alternates are not
+    # kerned: fusion is not intended there.
+    kern_fail = 0
+    for m in F.masters:
+        for (lg, rg), v in KERN_PAIRS.items():
+            try:
+                F.kerning[m.id][(lg, rg)] = v
+            except Exception:
+                kern_fail += 1
+    try:
+        written = sum(len(F.kerning[m.id]) for m in F.masters)
+        print("kern pairs written: %s (failures: %d)" % (written, kern_fail))
+    except Exception as e:
+        print("kerning write failed:", e)
 
     # Weight axis + ExtraBold instance: required for Text Preview / interpolation.
     # GSInstance has no weightValue in this API; axis location lives in .axes.

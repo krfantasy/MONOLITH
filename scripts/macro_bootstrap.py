@@ -1,14 +1,17 @@
-# Exec this file in Glyphs' Macro Panel (Window > Macro Panel, then Run)
-# to rebuild <repo>/MONOLITH.glyphs from src/monolith/design.py.
-# The ONLY machine-specific line is the path below.
+# Exec this file in Glyphs' Macro Panel (Window > Macro Panel, ⌥⌘M, then Run)
+# to rebuild <repo>/MONOLITH.glyphs from src/monolith/design.py — including
+# the pair kerning — and re-export the binary fonts into <repo>/fonts/.
+# The Macro Panel has no __file__, so the one line to adjust is below.
+__file__ = "/Users/krfantasy/Developer/bold/.worktrees/spac-axis/scripts/macro_bootstrap.py"
 import sys
-sys.path.insert(0, "/Users/krfantasy/Developer/bold/src")
+from pathlib import Path
 
-from monolith import build
+REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "src"))
 
-build.run()
+from monolith import build  # noqa: E402
 
-# Optional, after build.run(): (re)export the binary fonts.
-# f = Glyphs.font
-# f.instances[0].generate("TTF", "/Users/krfantasy/Developer/bold/fonts/MONOLITH-ExtraBold.ttf")
-# f.instances[0].generate("OTF", "/Users/krfantasy/Developer/bold/fonts/MONOLITH-ExtraBold.otf")
+f = build.run()
+f.instances[0].generate("TTF", str(REPO / "fonts" / "MONOLITH-ExtraBold.ttf"))
+f.instances[0].generate("OTF", str(REPO / "fonts" / "MONOLITH-ExtraBold.otf"))
+print("REGEN + EXPORT DONE")
