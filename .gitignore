@@ -12,3 +12,6 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 *.af
+
+# git worktrees (superpowers isolation)
+.worktrees/
