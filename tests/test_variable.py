@@ -2,10 +2,11 @@
 from pathlib import Path
 
 import pytest
+from fontTools.pens.recordingPen import RecordingPen
 from fontTools.ttLib import TTFont
 
 from monolith import variable
-from monolith.design import SPACED_LSB, TIGHT_OVERLAP
+from monolith.design import DES, SPACED_LSB, TIGHT_OVERLAP, spaced_advance, tight_advance
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FONT = REPO_ROOT / "fonts" / "MONOLITH-ExtraBold.ttf"
@@ -45,3 +46,39 @@ def test_named_instances(vf_path: Path) -> None:
         for i in font["fvar"].instances
     }
     assert got == {"Tight": 0, "Touching": 30, "Spaced": 130}
+
+
+def _contours(font: TTFont, gname: str) -> list:
+    pen = RecordingPen()
+    font.getGlyphSet()[gname].draw(pen)
+    return pen.value
+
+
+def test_instance_advances_match_design_math(vf_path: Path) -> None:
+    # 0 -> tight, TOUCHING -> natural width (ink edges touch), SPAC_MAX -> .spaced
+    expected = {
+        0: {n: tight_advance(n) for n in DES},
+        variable.TOUCHING: {n: tight_advance(n) + variable.TOUCHING for n in DES},
+        variable.SPAC_MAX: {n: spaced_advance(n) if n != "space"
+                            else tight_advance("space") + variable.SPAC_MAX
+                            for n in DES},
+    }
+    for v, want in expected.items():
+        inst = variable.instance_at_spac(vf_path, v)
+        assert "fvar" not in inst, v
+        for n, adv in want.items():
+            assert inst["hmtx"][n][0] == adv, (v, n)
+
+
+def test_spaced_alternates_get_the_same_delta(vf_path: Path) -> None:
+    inst = variable.instance_at_spac(vf_path, variable.SPAC_MAX)
+    assert inst["hmtx"]["zero.spaced"][0] == spaced_advance("zero") + variable.SPAC_MAX
+
+
+def test_outlines_identical_at_every_position(vf_path: Path) -> None:
+    static = TTFont(str(FONT))
+    at_max = variable.instance_at_spac(vf_path, variable.SPAC_MAX)
+    for gname in ("A", "V", "one", "zero", "a"):
+        ref = _contours(static, gname)
+        assert _contours(TTFont(str(vf_path)), gname) == ref, gname
+        assert _contours(at_max, gname) == ref, gname
