@@ -60,11 +60,17 @@ def _add_name(font: TTFont, text: str, name_id: int) -> None:
     name.setName(text, name_id, 1, 0, 0)
 
 
-def _add_kern_axis_to_fvar(font: TTFont) -> None:
-    fvar = font["fvar"]
-    if any(a.axisTag == "KERN" for a in fvar.axes):
+def _add_kern_axis_to_fvar(font: TTFont) -> int:
+    """Add the KERN axis — or find the existing one — and return its axisNameID.
+
+    The returned ID is the single "Kern" name record, shared with the STAT
+    update below so a re-run never allocates a duplicate.
+    """
+    existing = next((a for a in font["fvar"].axes if a.axisTag == "KERN"), None)
+    if existing is not None:
         print("fvar already has KERN")
-        return
+        return existing.axisNameID
+    fvar = font["fvar"]
     name_id = _new_name_id(font)
     _add_name(font, KERN_NAME, name_id)
     axis = type(fvar.axes[0])()  # must be the _f_v_a_r.Axis struct, not otTables.Axis
@@ -81,6 +87,7 @@ def _add_kern_axis_to_fvar(font: TTFont) -> None:
         "fvar: KERN axis added (%d-%d-%d), %d instances pinned to default"
         % (KERN_MIN, KERN_DEFAULT, KERN_MAX, len(fvar.instances))
     )
+    return name_id
 
 
 def _rename_default_instance(font: TTFont) -> None:
@@ -311,13 +318,11 @@ def build_kern_axis(src: str | Path = RAW_VF, out: str | Path = SHIPPED_VF) -> T
     # cross-check. Decompiled early, it recompiles at save time with both
     # axes (tuples get a (0,0,0) KERN entry — outlines ignore kerning).
     _ = font["gvar"]
-    _add_kern_axis_to_fvar(font)
+    kern_name_id = _add_kern_axis_to_fvar(font)
     _rename_default_instance(font)
     stat_table = font.get("STAT")
     if stat_table is not None:
-        axis_name_id = _new_name_id(font)
-        _add_name(font, KERN_NAME, axis_name_id)
-        _add_kern_axis_to_stat(font, axis_name_id)
+        _add_kern_axis_to_stat(font, kern_name_id)
     store = _build_variation_store(font)
     _attach_store_to_gdef(font, store)
     pair_pos = _build_pair_pos(font)

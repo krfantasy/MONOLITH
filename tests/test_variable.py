@@ -85,6 +85,23 @@ def test_hvar_carries_spac_advances(vf: TTFont) -> None:
     assert by_delta == {130: 193, -500: 1}
 
 
+def test_kern_axis_rebuild_is_idempotent(tmp_path: Path) -> None:
+    """Running kern_axis on its own output must not grow the name table or
+    duplicate axes (the old version allocated a fresh "Kern" nameID on
+    every pass, before the STAT early-return)."""
+    from monolith import kern_axis
+
+    raw = REPO_ROOT / "fonts" / "MONOLITH-Variable-raw.ttf"
+    once = kern_axis.build_kern_axis(raw, tmp_path / "once.ttf")
+    twice = kern_axis.build_kern_axis(tmp_path / "once.ttf", tmp_path / "twice.ttf")
+
+    for font in (once, twice):
+        assert [ax.axisTag for ax in font["fvar"].axes] == ["SPAC", "KERN"]
+        assert len(font["fvar"].instances) == 3
+        kern_ids = {r.nameID for r in font["name"].names if r.toUnicode() == "Kern"}
+        assert len(kern_ids) == 1, kern_ids
+
+
 def test_kern_wiring_store_and_feature(vf: TTFont) -> None:
     """GDEF must carry the delta store and GPOS a kern lookup driven by it."""
     store = vf["GDEF"].table.VarStore
