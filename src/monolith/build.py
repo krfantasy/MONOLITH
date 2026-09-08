@@ -289,20 +289,23 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
     # into the variable font), written for every master so it carries into
     # all exports unchanged across axes. The .spaced alternates are not
     # kerned: fusion is not intended there.
-    # NOTE: assignment must happen at the TOP level of F.kerning — writing
-    # through F.kerning[master.id][pair] mutates a throwaway copy and the
-    # kerning silently never lands in the saved file.
+    # NOTE: Glyphs 3 kerning is NESTED per master: {left: {right: value}}.
+    # A flat {(left, right): value} dict is accepted but crashes F.save()
+    # with "OC_BuiltinPythonArray hasPrefix:".
     for m in F.masters:
         try:
             table = dict(F.kerning[m.id])
         except Exception:
             table = {}
-        table.update(KERN_PAIRS)
+        for (lg, rg), v in KERN_PAIRS.items():
+            inner = dict(table.get(lg) or {})
+            inner[rg] = v
+            table[lg] = inner
         F.kerning[m.id] = table
     stored = 0
     for m in F.masters:
         try:
-            stored += len(F.kerning[m.id])
+            stored += sum(len(inner) for inner in F.kerning[m.id].values())
         except Exception:
             pass
     print("kern pairs stored: %d (expected %d per master, %d masters)"
