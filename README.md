@@ -88,7 +88,8 @@ in tests and specimens):
 
 1. Open Glyphs, then Window ▸ Macro Panel (⌥⌘M).
 2. Paste the contents of [`scripts/macro_bootstrap.py`](scripts/macro_bootstrap.py)
-   (adjust the one path line to your checkout) and press **Run**.
+   with `MONOLITH.glyphs` open as the frontmost document (the script derives
+   the checkout from it) and press **Run**.
    `MONOLITH.glyphs` is rewritten in place — including the two `SPAC` masters
    and the native kerning pairs — and everything is exported into `fonts/`:
    the TTF/OTF statics (unkerned), and the raw variable font

@@ -2,12 +2,24 @@
 # to rebuild <repo>/MONOLITH.glyphs from src/monolith/design.py — SPAC masters,
 # native per-master kerning (Window > Kerning shows the 742 pairs) — and
 # export the binaries into <repo>/fonts/. The Macro Panel has no __file__,
-# so the one line to adjust is below.
-__file__ = "/Users/krfantasy/Developer/bold/.worktrees/spac-axis/scripts/macro_bootstrap.py"
+# so the checkout is derived from the frontmost document: open
+# <repo>/MONOLITH.glyphs before pressing Run.
 import sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[1]
+_doc_path = ""
+try:
+    _raw = Glyphs.font.filepath  # noqa: F821 — Macro Panel global
+    _doc_path = str(_raw() if callable(_raw) else _raw or "")
+except (NameError, AttributeError):
+    pass
+if not _doc_path:
+    raise SystemExit(
+        "Open <repo>/MONOLITH.glyphs in Glyphs (frontmost tab), then Run:"
+        " the checkout is derived from that document's path."
+    )
+
+REPO = Path(_doc_path).resolve().parent
 sys.path.insert(0, str(REPO / "src"))
 
 import importlib  # noqa: E402
