@@ -17,6 +17,7 @@ monolith-variable = "monolith.vfcli:main"
 dev = [
     "pytest",
     "ruff",
+    "uharfbuzz",
 ]
 
 [build-system]

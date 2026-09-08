@@ -93,3 +93,39 @@ def test_cli_builds_to_explicit_out(
     vfcli.main(["--font", str(FONT), "--out", str(out)])
     assert out.exists()
     assert str(out) in capsys.readouterr().out
+
+
+def _kern_value(font: TTFont, left: str, right: str) -> int | None:
+    gpos = font["GPOS"].table
+    for fr in gpos.FeatureList.FeatureRecord:
+        if fr.FeatureTag != "kern":
+            continue
+        for li in fr.Feature.LookupListIndex:
+            lookup = gpos.LookupList.Lookup[li]
+            for st in lookup.SubTable:
+                if left in st.Coverage.glyphs:
+                    ps = st.PairSet[st.Coverage.glyphs.index(left)]
+                    for pvr in ps.PairValueRecord:
+                        if pvr.SecondGlyph == right:
+                            return pvr.Value1.XAdvance
+    return None
+
+
+def test_variable_font_carries_gpos_kerning(vf_path: Path) -> None:
+    font = TTFont(str(vf_path))
+    assert _kern_value(font, "A", "V") == -160
+    assert _kern_value(font, "a", "v") == -160  # lowercase mirrors present
+    assert _kern_value(font, "H", "H") is None  # solid pairs untouched
+
+
+def test_kerning_survives_instancing(vf_path: Path) -> None:
+    inst = variable.instance_at_spac(vf_path, 65)
+    assert _kern_value(inst, "A", "V") == -160
+
+
+def test_kerning_injection_is_idempotent(vf_path: Path) -> None:
+    font = TTFont(str(vf_path))
+    variable.apply_kerning(font)
+    feats = [fr.FeatureTag for fr in font["GPOS"].table.FeatureList.FeatureRecord]
+    assert feats.count("kern") == 1
+    assert _kern_value(font, "A", "V") == -160

@@ -15,11 +15,13 @@ from fontTools.designspaceLib import (
     InstanceDescriptor,
     SourceDescriptor,
 )
-from fontTools.ttLib import TTFont
+from fontTools.ttLib import TTFont, newTable
+from fontTools.ttLib.tables import otTables
 from fontTools.varLib import build as varlib_build
 from fontTools.varLib.instancer import instantiateVariableFont
 
 from monolith.design import SPACED_LSB, TIGHT_OVERLAP
+from monolith.kerning import KERN_PAIRS
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_FONT = REPO_ROOT / "fonts" / "MONOLITH-ExtraBold.ttf"
@@ -83,9 +85,102 @@ def build_variable(
         doc.write(ds_path)
 
         vf, _model, _masters = varlib_build(ds_path)
+        apply_kerning(vf)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         vf.save(str(out_path))
     return out_path
+
+
+def _kern_feature_present(font: TTFont) -> bool:
+    if "GPOS" not in font or font["GPOS"].table.FeatureList is None:
+        return False
+    return any(fr.FeatureTag == "kern" for fr in font["GPOS"].table.FeatureList.FeatureRecord)
+
+
+def apply_kerning(font: TTFont) -> None:
+    """Write KERN_PAIRS as a GPOS pair-position 'kern' feature.
+
+    Idempotent: a font that already carries a kern feature (e.g. re-exported
+    from Glyphs after build.py added kerning) is left untouched, so kern
+    values can never apply twice.
+    """
+    if _kern_feature_present(font):
+        return
+    glyph_order = set(font.getGlyphOrder())
+    pairs: dict[str, list[tuple[str, int]]] = {}
+    for (lg, rg), v in KERN_PAIRS.items():
+        if lg in glyph_order and rg in glyph_order:
+            pairs.setdefault(lg, []).append((rg, v))
+    if not pairs:
+        return
+
+    pair_pos = otTables.PairPos()
+    pair_pos.Format = 1
+    pair_pos.ValueFormat1 = 0x0004  # XAdvance only
+    pair_pos.ValueFormat2 = 0x0000
+    pair_pos.Coverage = otTables.Coverage()
+    pair_pos.Coverage.glyphs = sorted(pairs)
+    pair_pos.PairSet = []
+    for lg in sorted(pairs):
+        pair_set = otTables.PairSet()
+        pair_set.PairValueRecord = []
+        for rg, v in sorted(pairs[lg]):
+            pvr = otTables.PairValueRecord()
+            pvr.SecondGlyph = rg
+            pvr.Value1 = otTables.ValueRecord()
+            pvr.Value1.XAdvance = v
+            pair_set.PairValueRecord.append(pvr)
+        pair_set.PairValueCount = len(pair_set.PairValueRecord)
+        pair_pos.PairSet.append(pair_set)
+    pair_pos.PairSetCount = len(pair_pos.PairSet)
+
+    lookup = otTables.Lookup()
+    lookup.LookupType = 2  # pair positioning
+    lookup.LookupFlag = 0
+    lookup.SubTable = [pair_pos]
+    lookup.LookupCount = 1
+
+    feature = otTables.Feature()
+    feature.FeatureParams = None
+    feature.LookupListIndex = [0]
+    feature.LookupCount = 1
+
+    lang_sys = otTables.LangSys()
+    lang_sys.LookupOrder = None
+    lang_sys.ReqFeatureIndex = 0xFFFF
+    lang_sys.FeatureIndex = [0]
+    lang_sys.FeatureCount = 1
+    script = otTables.Script()
+    script.DefaultLangSys = lang_sys
+    script.LangSysRecord = []
+    script.LangSysCount = 0
+    script_record = otTables.ScriptRecord()
+    script_record.ScriptTag = "DFLT"
+    script_record.Script = script
+    script_list = otTables.ScriptList()
+    script_list.ScriptRecord = [script_record]
+    script_list.ScriptCount = 1
+
+    feature_record = otTables.FeatureRecord()
+    feature_record.FeatureTag = "kern"
+    feature_record.Feature = feature
+    feature_list = otTables.FeatureList()
+    feature_list.FeatureRecord = [feature_record]
+    feature_list.FeatureCount = 1
+
+    lookup_list = otTables.LookupList()
+    lookup_list.Lookup = [lookup]
+    lookup_list.LookupCount = 1
+
+    gpos = otTables.GPOS()
+    gpos.Version = 0x00010000
+    gpos.ScriptList = script_list
+    gpos.FeatureList = feature_list
+    gpos.LookupList = lookup_list
+
+    gpos_table = newTable("GPOS")
+    gpos_table.table = gpos
+    font["GPOS"] = gpos_table
 
 
 def instance_at_spac(font_path: str | Path, spac: int) -> TTFont:
