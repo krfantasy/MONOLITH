@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "fonttools>=4.64",
     "pillow>=11",
+    "uharfbuzz>=0.30",
 ]
 
 [project.scripts]
@@ -16,7 +17,6 @@ monolith-specimen = "monolith.cli:main"
 dev = [
     "pytest",
     "ruff",
-    "uharfbuzz",
 ]
 
 [build-system]

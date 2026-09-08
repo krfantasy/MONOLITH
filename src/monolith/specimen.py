@@ -1,15 +1,22 @@
-"""Render the MONOLITH specimen PNGs (tight + loose ss01) from the exported TTF."""
+"""Render the MONOLITH specimen PNGs from the exported binaries.
 
-from collections.abc import Callable, Sequence
+Layout is HarfBuzz shaping — the same class of engine browsers and
+layout apps run — so the PNGs show the font's real spacing: default
+advances with GPOS kern for the shipped look, ss01 substitution for the
+loose look, SPAC variations for the variable renders. No advance,
+kern, or tracking math is done here; if it isn't in the binary, it
+isn't in the PNG.
+"""
+
+from collections.abc import Sequence
 from pathlib import Path
 
+import uharfbuzz as hb
 from fontTools.pens.recordingPen import RecordingPen
 from fontTools.ttLib import TTFont
 from PIL import Image, ImageChops, ImageDraw
 
 from monolith.design import Point
-from monolith.kerning import kern_for
-from monolith.variable import instance_at_spac
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_FONT = REPO_ROOT / "fonts" / "MONOLITH-ExtraBold.ttf"
@@ -31,18 +38,19 @@ def signed_area(c: Sequence[Point]) -> float:
 
 
 class SpecimenRenderer:
-    def __init__(self, font_path: str | Path, font: TTFont | None = None) -> None:
-        font = font if font is not None else TTFont(str(font_path))
+    def __init__(self, font_path: str | Path) -> None:
+        self.font_path = Path(font_path)
+        font = TTFont(str(font_path))
         self.gs = font.getGlyphSet()
         self.cmap = font.getBestCmap()
-        self._cache: dict[str | None, list[list[Point]]] = {}
+        self.order = font.getGlyphOrder()
+        self._cache: dict[str, list[list[Point]]] = {}
 
-    def contours(self, gname: str | None) -> list[list[Point]]:
+    def contours(self, gname: str) -> list[list[Point]]:
         if gname in self._cache:
             return self._cache[gname]
         pen = RecordingPen()
-        if gname is not None and gname in self.gs:
-            self.gs[gname].draw(pen)
+        self.gs[gname].draw(pen)
         cs, cur = [], []
         for op, args in pen.value:
             pts = [(a[0], a[1]) for a in args]
@@ -55,54 +63,47 @@ class SpecimenRenderer:
         self._cache[gname] = cs
         return cs
 
+    def shape(
+        self,
+        text: str,
+        features: dict[str, bool] | None = None,
+        variations: dict[str, float] | None = None,
+    ) -> list[tuple[str, float, float, float]]:
+        """Shape text with HarfBuzz: [(glyph_name, x_advance, x_offset, y_offset)]."""
+        blob = hb.Blob.from_file_path(str(self.font_path))
+        face = hb.Face(blob)
+        font = hb.Font(face)
+        if variations:
+            font.set_variations(variations)
+        buf = hb.Buffer()
+        buf.add_str(text)
+        buf.guess_segment_properties()
+        hb.shape(font, buf, features)
+        return [
+            (self.order[info.codepoint], pos.x_advance, pos.x_offset, pos.y_offset)
+            for info, pos in zip(buf.glyph_infos, buf.glyph_positions)
+        ]
+
     def render(
         self,
         showcase: str,
         rows: Sequence[str],
-        resolver: Callable[["SpecimenRenderer", str], str | None],
-        space_adv: float,
-        show_scale: float,
         scale: float,
-        show_track: float,
-        track: float,
+        show_scale: float,
         out: str | Path,
-        kerns: bool = False,
+        features: dict[str, bool] | None = None,
+        variations: dict[str, float] | None = None,
     ) -> None:
-        """resolver(renderer, ch) -> glyph name; spaces advance by space_adv.
-
-        kerns=True applies the seam-metric pair kerns between consecutive
-        non-space characters (the ss01 `.spaced` render leaves them off).
-        """
-        gs = self.gs
-
-        def gname_of(ch: str) -> str | None:
-            return None if ch == " " else resolver(self, ch)
-
-        def adv(gname: str | None) -> float:
-            return gs[gname].width if gname in gs else 600
-
-        def kern_delta(prev: str, ch: str, sc: float) -> float:
-            return kern_for(prev, ch) * sc if kerns else 0.0
-
-        def line_extent(text: str, sc: float, tr: float) -> float:
-            w = 0
-            prev = ""
-            for ch in text:
-                w += kern_delta(prev, ch, sc)
-                prev = ch
-                w += (space_adv if ch == " " else adv(gname_of(ch))) * sc + tr
-            return w - (tr if text else 0)
-
+        """Draw every string as a shaped run; spacing is whatever the font yields."""
         margin = 50
+
+        def run_width(text: str, sc: float) -> float:
+            return sum(a for _, a, _, _ in self.shape(text, features, variations)) * sc
+
         line_h = int(700 * scale) + 70
         show_line_h = int(700 * show_scale) + 90
         W = (
-            int(
-                max(
-                    [line_extent(s, show_scale, show_track) for s in showcase]
-                    + [line_extent(r, scale, track) for r in rows]
-                )
-            )
+            int(max([run_width(showcase, show_scale)] + [run_width(r, scale) for r in rows]))
             + 2 * margin
         )
         H = margin + show_line_h + len(rows) * line_h + margin
@@ -110,18 +111,8 @@ class SpecimenRenderer:
         img = Image.new("RGB", (W, H), BG)
         mask = Image.new("L", (W, H), 0)
 
-        def draw_line(text: str, x: float, y_base: float, sc: float, tr: float) -> float:
-            prev = ""
-            for ch in text:
-                if ch == " ":
-                    x += space_adv * sc + tr
-                    prev = ""
-                    continue
-                x += kern_delta(prev, ch, sc)
-                prev = ch
-                gname = resolver(self, ch)
-                if gname is None:
-                    continue
+        def draw_shaped(text: str, x: float, y_base: float, sc: float) -> float:
+            for gname, adv, xo, yo in self.shape(text, features, variations):
                 cs = self.contours(gname)
                 if cs:
                     # ink vs hole by winding: holes wind opposite to the body
@@ -131,35 +122,24 @@ class SpecimenRenderer:
                     td = ImageDraw.Draw(tmp)
                     for i, c in enumerate(cs):
                         td.polygon(
-                            [(x + p[0] * sc, y_base - p[1] * sc) for p in c],
+                            [(x + xo * sc + p[0] * sc, y_base - yo * sc - p[1] * sc) for p in c],
                             fill=0 if (areas[i] < 0) != (areas[body] < 0) else 255,
                         )
                     mask.paste(ImageChops.lighter(mask.crop((0, 0, W, H)), tmp), (0, 0))
-                x += adv(gname) * sc + tr
+                x += adv * sc
             return x
 
         y = margin + int(700 * show_scale)
-        x = margin
-        for ch in showcase:
-            x = draw_line(ch, x, y, show_scale, show_track) + show_track + 40
+        draw_shaped(showcase, margin, y, show_scale)
 
         y = margin + show_line_h + int(700 * scale)
         for row in rows:
-            draw_line(row, margin, y, scale, track)
+            draw_shaped(row, margin, y, scale)
             y += line_h
 
         img.paste(FG, (0, 0), mask)
         img.save(str(out))
         print("saved", out, img.size)
-
-
-def tight(r: SpecimenRenderer, ch: str) -> str | None:
-    return r.cmap.get(ord(ch))
-
-
-def spaced(r: SpecimenRenderer, ch: str) -> str | None:
-    n = r.cmap.get(ord(ch))
-    return (n + ".spaced") if n and (n + ".spaced") in r.gs else n
 
 
 def build_rows(cmap: dict[int, str]) -> list[str]:
@@ -192,29 +172,24 @@ def main(
     r = SpecimenRenderer(font_path)
     rows = build_rows(r.cmap)
     out_dir.mkdir(parents=True, exist_ok=True)
-    # tight variant: default tight advances, pair kerns, extra negative tracking
-    r.render(SHOWCASE, rows, tight, 240, 0.34, 0.22, 140, -40, out_dir / "specimen.png", kerns=True)
-    # spaced variant: .spaced alternates (+130 advance), no extra tracking
-    r.render(SHOWCASE, rows, spaced, 240 + 130, 0.34, 0.22, 140, 0, out_dir / "specimen-spaced.png")
+    # shipped look: default advances + GPOS kern, exactly as apps lay it out
+    r.render(SHOWCASE, rows, 0.22, 0.34, out_dir / "specimen.png")
+    # loose look: ss01 — the font's own .spaced alternates and their advances
+    r.render(SHOWCASE, rows, 0.22, 0.34, out_dir / "specimen-spaced.png", features={"ss01": True})
     if spac is not None:
-        # SPAC-axis variant: advances baked from the variable font at `spac`
+        # SPAC-axis variant: the variable font shaped at `spac`
         vpath = Path(variable_font_path) if variable_font_path else DEFAULT_VARIABLE_FONT
         if not vpath.exists():
             raise SystemExit(
                 f"variable font not found: {vpath}\n"
                 "Export it from Glyphs: File > Export > Variable (see README)"
             )
-        inst = instance_at_spac(vpath, spac)
-        rv = SpecimenRenderer(vpath, font=inst)
+        rv = SpecimenRenderer(vpath)
         rv.render(
             SHOWCASE,
             rows,
-            tight,
-            rv.gs["space"].width,
-            0.34,
             0.22,
-            140,
-            0,
+            0.34,
             out_dir / f"specimen-spac{spac}.png",
-            kerns=True,
+            variations={"SPAC": spac},
         )

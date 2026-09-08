@@ -84,6 +84,11 @@ uv run monolith-specimen        # writes specimens/specimen{,-spaced}.png
 uv run monolith-specimen --spac 30   # + specimens/specimen-spac30.png (needs the variable font)
 ```
 
+Specimen rows are laid out by shaping the exported binaries with HarfBuzz,
+so the PNGs show the font's real spacing — default advances + GPOS kern,
+`ss01` substitution for the loose sheet, `SPAC` variations for the axis
+sheet. Nothing is hand-adjusted.
+
 ## Development
 
 ```sh

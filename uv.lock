@@ -76,26 +76,26 @@ source = { editable = "." }
 dependencies = [
     { name = "fonttools" },
     { name = "pillow" },
+    { name = "uharfbuzz" },
 ]
 
 [package.dev-dependencies]
 dev = [
     { name = "pytest" },
     { name = "ruff" },
-    { name = "uharfbuzz" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "fonttools", specifier = ">=4.64" },
     { name = "pillow", specifier = ">=11" },
+    { name = "uharfbuzz", specifier = ">=0.30" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "pytest" },
     { name = "ruff" },
-    { name = "uharfbuzz" },
 ]
 
 [[package]]
