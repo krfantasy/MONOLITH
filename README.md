@@ -104,7 +104,10 @@ specimens):
 ```sh
 uv sync
 uv run monolith-specimen        # writes specimens/specimen{,-spaced}.png
-uv run monolith-specimen --spac 30   # + specimen-spac30.png and specimen-kern100.png (needs the variable font)
+uv run monolith-specimen --spac 30
+# + specimen-spac30.png, specimen-kern100.png and the axis ramp sheets
+#   (specimen-kern-ramp.png: KERN 0-100 in steps of 10;
+#    specimen-spac-ramp.png: SPAC 0-130 in steps of 10) — needs the variable font
 ```
 
 Specimen rows are laid out by shaping the exported binaries with HarfBuzz,

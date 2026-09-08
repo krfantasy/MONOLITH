@@ -141,6 +141,69 @@ class SpecimenRenderer:
         img.save(str(out))
         print("saved", out, img.size)
 
+    def render_ramp(
+        self,
+        text: str,
+        axis_tag: str,
+        values: Sequence[int],
+        scale: float,
+        label_scale: float,
+        out: str | Path,
+    ) -> None:
+        """One labeled row per axis value: an axis as a single picture.
+
+        Labels (e.g. "KERN 30") are shaped in MONOLITH itself at label_scale,
+        at the default variations; every row's spacing comes from shaping the
+        binary at {axis_tag: value}. Nothing is hand-adjusted.
+        """
+        margin = 50
+        label_gap = 60
+        runs = [(v, self.shape(text, variations={axis_tag: v})) for v in values]
+        label_w = (
+            max(sum(a for _, a, _, _ in self.shape(f"{axis_tag} {v}")) for v in values)
+            * label_scale
+        )
+        row_h = int(700 * scale) + 70
+        W = (
+            int(max(sum(a for _, a, _, _ in run) for _, run in runs) * scale)
+            + 2 * margin
+            + int(label_w)
+            + label_gap
+        )
+        H = 2 * margin + len(runs) * row_h
+
+        img = Image.new("RGB", (W, H), BG)
+        mask = Image.new("L", (W, H), 0)
+
+        def draw_run(
+            run: list[tuple[str, float, float, float]], x: float, y_base: float, sc: float
+        ) -> float:
+            for gname, adv, xo, yo in run:
+                cs = self.contours(gname)
+                if cs:
+                    # ink vs hole by winding: holes wind opposite to the body
+                    areas = [signed_area(c) for c in cs]
+                    body = max(range(len(cs)), key=lambda i: abs(areas[i]))
+                    tmp = Image.new("L", (W, H), 0)
+                    td = ImageDraw.Draw(tmp)
+                    for i, c in enumerate(cs):
+                        td.polygon(
+                            [(x + xo * sc + p[0] * sc, y_base - yo * sc - p[1] * sc) for p in c],
+                            fill=0 if (areas[i] < 0) != (areas[body] < 0) else 255,
+                        )
+                    mask.paste(ImageChops.lighter(mask.crop((0, 0, W, H)), tmp), (0, 0))
+                x += adv * sc
+            return x
+
+        for i, (v, run) in enumerate(runs):
+            y_base = margin + int(700 * scale) + i * row_h
+            draw_run(self.shape(f"{axis_tag} {v}"), margin, y_base, label_scale)
+            draw_run(run, margin + label_w + label_gap, y_base, scale)
+
+        img.paste(FG, (0, 0), mask)
+        img.save(str(out))
+        print("saved", out, img.size)
+
 
 def build_rows(cmap: dict[int, str]) -> list[str]:
     # every non-alphanumeric, non-space character the font maps
@@ -204,4 +267,21 @@ def main(
         0.34,
         out_dir / "specimen-kern100.png",
         variations={"KERN": 100},
+    )
+    # axis ramps: one row per 10-unit step, labeled in MONOLITH itself
+    rv.render_ramp(
+        "WAVE AVATAR TROUGH",
+        "KERN",
+        range(0, 101, 10),
+        0.22,
+        0.05,
+        out_dir / "specimen-kern-ramp.png",
+    )
+    rv.render_ramp(
+        "MONOLITH EXTRA BOLD 0123",
+        "SPAC",
+        range(0, 131, 10),
+        0.22,
+        0.05,
+        out_dir / "specimen-spac-ramp.png",
     )

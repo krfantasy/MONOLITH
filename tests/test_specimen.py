@@ -68,3 +68,22 @@ def test_layout_is_shaper_truth(tmp_path: Path) -> None:
     assert delta in (35, 36)  # 160 units at scale 0.22
     shaped = rv.shape("AV", variations={"KERN": 100})
     assert sum(a for _, a, _, _ in shaped) == 1020  # 590 + 590 - 160
+
+
+def test_render_axis_ramps(tmp_path: Path) -> None:
+    """The ramp sheets render one labeled row per 10-unit step."""
+    if not VF.exists():
+        pytest.skip("variable font not exported from Glyphs yet")
+    from monolith.specimen import SpecimenRenderer
+
+    r = SpecimenRenderer(VF)
+    kern_ramp = tmp_path / "kern-ramp.png"
+    spac_ramp = tmp_path / "spac-ramp.png"
+    r.render_ramp("WAVE AVATAR TROUGH", "KERN", range(0, 101, 10), 0.22, 0.05, kern_ramp)
+    r.render_ramp("MONOLITH", "SPAC", range(0, 131, 10), 0.22, 0.05, spac_ramp)
+    assert kern_ramp.exists() and kern_ramp.stat().st_size > 0
+    assert spac_ramp.exists() and spac_ramp.stat().st_size > 0
+    # the SPAC ramp really spans the axis: 8 glyphs x 130 units end to end
+    w0 = sum(a for _, a, _, _ in r.shape("MONOLITH", variations={"SPAC": 0}))
+    w130 = sum(a for _, a, _, _ in r.shape("MONOLITH", variations={"SPAC": 130}))
+    assert w130 - w0 == 130 * 8
