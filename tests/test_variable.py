@@ -1,4 +1,5 @@
 """SPAC variable-font assembly. Pure fontTools - no Glyphs required."""
+
 from pathlib import Path
 
 import pytest
@@ -25,9 +26,7 @@ def test_axis_constants_derived_from_design() -> None:
 
 @pytest.fixture(scope="module")
 def vf_path(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    return variable.build_variable(
-        FONT, tmp_path_factory.mktemp("vf") / "MONOLITH-Variable.ttf"
-    )
+    return variable.build_variable(FONT, tmp_path_factory.mktemp("vf") / "MONOLITH-Variable.ttf")
 
 
 def test_variable_font_declares_spac_axis(vf_path: Path) -> None:
@@ -59,9 +58,10 @@ def test_instance_advances_match_design_math(vf_path: Path) -> None:
     expected = {
         0: {n: tight_advance(n) for n in DES},
         variable.TOUCHING: {n: tight_advance(n) + variable.TOUCHING for n in DES},
-        variable.SPAC_MAX: {n: spaced_advance(n) if n != "space"
-                            else tight_advance("space") + variable.SPAC_MAX
-                            for n in DES},
+        variable.SPAC_MAX: {
+            n: spaced_advance(n) if n != "space" else tight_advance("space") + variable.SPAC_MAX
+            for n in DES
+        },
     }
     for v, want in expected.items():
         inst = variable.instance_at_spac(vf_path, v)
@@ -82,3 +82,14 @@ def test_outlines_identical_at_every_position(vf_path: Path) -> None:
         ref = _contours(static, gname)
         assert _contours(TTFont(str(vf_path)), gname) == ref, gname
         assert _contours(at_max, gname) == ref, gname
+
+
+def test_cli_builds_to_explicit_out(
+    vf_path: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from monolith import vfcli
+
+    out = tmp_path / "cli-out.ttf"
+    vfcli.main(["--font", str(FONT), "--out", str(out)])
+    assert out.exists()
+    assert str(out) in capsys.readouterr().out
