@@ -4,6 +4,7 @@ These encode lessons already paid for: full ASCII coverage, the
 thin-diagonal regression class (N/Z/V/W/Y), counter presence, and the
 spacing math the features/alternates depend on.
 """
+
 import math
 
 from fontTools.agl import AGL2UV
