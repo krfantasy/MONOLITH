@@ -1,9 +1,11 @@
 """The shipped variable font: SPAC + KERN axes, advances, outline invariance.
 
-Glyphs exports the base VF itself (raw: fvar SPAC + gvar via a
-VARIABLE-type instance, tracked as MONOLITH-Variable-raw.ttf) and
-monolith.kern_axis finishes it, adding the KERN axis with a GPOS
-VariationStore built from the same KERN_PAIRS the Kerning window shows.
+monolith.variable assembles the base VF from the exported static with
+fontTools varLib (metric-only SPAC: fvar + HVAR, no GPOS — Glyphs 4.1's VF
+export rejects this doc, so the exporter is not on the pipeline's critical
+path), tracked as MONOLITH-Variable-raw.ttf, and monolith.kern_axis
+finishes it, adding the KERN axis with a GPOS VariationStore built from
+the same KERN_PAIRS the Kerning window shows.
 """
 
 from pathlib import Path
@@ -85,7 +87,9 @@ def test_hvar_carries_spac_advances(vf: TTFont) -> None:
     by_delta: dict[int, int] = {}
     for item in data.Item:
         by_delta[item[0]] = by_delta.get(item[0], 0) + 1
-    assert by_delta == {130: 194}
+    # uniform +130 for every glyph: keep the uniformity assertion, derive
+    # the count from the font instead of hardcoding it as a magic number.
+    assert by_delta == {130: len(vf.getGlyphOrder())}
 
 
 def test_kern_axis_build_is_deterministic(tmp_path: Path) -> None:
@@ -105,8 +109,10 @@ def test_kern_axis_build_is_deterministic(tmp_path: Path) -> None:
         TTFont(str(tmp_path / "once.ttf"), lazy=True),
         TTFont(str(tmp_path / "twice.ttf"), lazy=True),
     )
+    reader_a, reader_b = a.reader, b.reader
+    assert reader_a is not None and reader_b is not None
     for tag in sorted(set(a.keys()) - {"head", "GlyphOrder"}):
-        assert a.reader[tag] == b.reader[tag], tag
+        assert reader_a[tag] == reader_b[tag], tag
     a.close()
     b.close()
 
@@ -135,10 +141,53 @@ def test_kern_wiring_store_and_feature(vf: TTFont) -> None:
     assert all(d.DeltaFormat == 0x8000 for d in devices)  # VariationIndex format
 
 
+def test_kern_gpos_serves_latn_script(vf: TTFont) -> None:
+    """GPOS kern must be reachable under latn, not just DFLT.
+
+    HarfBuzz falls back latn->DFLT, but Word/Adobe/CoreText resolve
+    latn-first; a DFLT-only kern lookup is an interop risk for the
+    flagship axis. Both records share the one kern lookup."""
+    tags = [rec.ScriptTag for rec in vf["GPOS"].table.ScriptList.ScriptRecord]
+    assert "DFLT" in tags
+    assert "latn" in tags
+
+
 def _contours(font: TTFont, gname: str) -> list:
     pen = RecordingPen()
     font.getGlyphSet()[gname].draw(pen)
     return pen.value
+
+
+def test_instance_at_spac_rejects_out_of_range() -> None:
+    with pytest.raises(ValueError):
+        variable.instance_at_spac(VF, -1)
+    with pytest.raises(ValueError):
+        variable.instance_at_spac(VF, variable.SPAC_MAX + 1)
+
+
+def test_build_variable_font_produces_spac_base_vf() -> None:
+    """The varLib assembly step is the pipeline's base-VF producer
+    (macro_bootstrap.py ends with `python -m monolith.variable`): pin
+    its contract — SPAC-only fvar, HVAR present, default master at the
+    tight advances — so it never ships untested."""
+    vf = variable.build_variable_font(FONT)
+    assert [ax.axisTag for ax in vf["fvar"].axes] == ["SPAC"]
+    spac = vf["fvar"].axes[0]
+    assert (spac.minValue, spac.defaultValue, spac.maxValue) == (0, 0, 130)
+    assert "HVAR" in vf
+    static = TTFont(str(FONT))
+    for name in ("A", "one", "space"):
+        assert vf["hmtx"][name][0] == static["hmtx"][name][0], name
+
+
+def test_variable_main_writes_to_explicit_out(tmp_path: Path) -> None:
+    from monolith import variable
+
+    out = tmp_path / "cli-raw.ttf"
+    variable.main(["--src", str(FONT), "--out", str(out)])
+    assert out.exists()
+    probe = TTFont(str(out))
+    assert [ax.axisTag for ax in probe["fvar"].axes] == ["SPAC"]
 
 
 def test_instance_advances_match_design_math(vf: TTFont) -> None:

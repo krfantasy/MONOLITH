@@ -1,7 +1,7 @@
 # Exec this file in Glyphs' Scripting Window (Window > Scripting Window —
 # in Glyphs 3: Window > Macro Panel, ⌥⌘M — then Run) to rebuild
 # <repo>/MONOLITH.glyphs from src/monolith/design.py — SPAC masters,
-# native per-master kerning (Window > Kerning shows the 742 pairs) — and
+# native per-master kerning (Window > Kerning shows the 932 pairs) — and
 # export the static binaries into <repo>/fonts/. The window has no
 # __file__, so the checkout is derived from the frontmost document: open
 # <repo>/MONOLITH.glyphs before pressing Run. Close other fonts first —

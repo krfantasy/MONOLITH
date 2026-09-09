@@ -50,6 +50,8 @@ KERN_AXIS_TAG = "KERN"
 KERN_MIN = 0
 KERN_DEFAULT = 0  # kerning off unless a layout engine asks for it
 KERN_MAX = 100
+KERN_NAME = "Kern"  # single source for the KERN axis range + name;
+# monolith.kern_axis imports these rather than redefining them.
 
 
 def build_variable_font(tight_path: str | Path = STATIC_TTF) -> TTFont:
@@ -100,13 +102,21 @@ def build_variable_font(tight_path: str | Path = STATIC_TTF) -> TTFont:
 
 def instance_at_spac(font_path: str | Path, spac: int) -> TTFont:
     """Static font pinned at the given SPAC value (fvar removed, advances baked)."""
+    if not (SPAC_MIN <= spac <= SPAC_MAX):
+        raise ValueError(f"SPAC {spac} out of range {SPAC_MIN}-{SPAC_MAX}")
     return instantiateVariableFont(TTFont(str(font_path)), {AXIS_TAG: spac})
 
 
-def main() -> None:
-    vf = build_variable_font(STATIC_TTF)
-    vf.save(str(RAW_VARIABLE_FONT))
-    print("saved", RAW_VARIABLE_FONT)
+def main(argv: list[str] | None = None) -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--src", type=Path, default=STATIC_TTF, help="tight static input")
+    parser.add_argument("--out", type=Path, default=RAW_VARIABLE_FONT, help="raw VF output")
+    args = parser.parse_args(argv)
+    vf = build_variable_font(args.src)
+    vf.save(str(args.out))
+    print("saved", args.out)
 
 
 if __name__ == "__main__":

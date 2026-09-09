@@ -8,7 +8,7 @@ and writes fonts/MONOLITH-Variable-raw.ttf. This module finishes it:
 - fvar gains a KERN axis: min 0, DEFAULT 0 (kern off unless asked), max 100.
 - GDEF gains an ItemVariationStore with one region (KERN peak 100) and one
   delta per seam-metric pair from monolith.kerning.KERN_PAIRS — the same
-  742 values shown in the Glyphs Kerning window.
+  932 values shown in the Glyphs Kerning window.
 - A GPOS `kern` feature (default-on in every shaper) holds PairPos records
   whose XAdvance is 0 plus a VariationIndex device into that store, so a
   KERN coordinate of t applies each kern scaled by t/100.
@@ -28,7 +28,6 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import Any
 
 from fontTools.ttLib import TTFont, newTable
 from fontTools.ttLib.removeOverlaps import removeOverlaps
@@ -42,10 +41,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 RAW_VF = REPO_ROOT / "fonts" / "MONOLITH-Variable-raw.ttf"
 SHIPPED_VF = REPO_ROOT / "fonts" / "MONOLITH-Variable.ttf"
 
-KERN_MIN = 0
-KERN_DEFAULT = 0
-KERN_MAX = 100
-KERN_NAME = "Kern"
+# KERN axis range + name live in monolith.variable (single source); used
+# below as variable.KERN_MIN / KERN_DEFAULT / KERN_MAX / KERN_NAME.
 TIGHT_INSTANCE_NAME = "Tight"
 
 
@@ -73,20 +70,20 @@ def _add_kern_axis_to_fvar(font: TTFont) -> int:
         return existing.axisNameID
     fvar = font["fvar"]
     name_id = _new_name_id(font)
-    _add_name(font, KERN_NAME, name_id)
+    _add_name(font, variable.KERN_NAME, name_id)
     axis = type(fvar.axes[0])()  # must be the _f_v_a_r.Axis struct, not otTables.Axis
     axis.axisTag = "KERN"
     axis.axisNameID = name_id
     axis.flags = 0
-    axis.minValue = KERN_MIN
-    axis.defaultValue = KERN_DEFAULT
-    axis.maxValue = KERN_MAX
+    axis.minValue = variable.KERN_MIN
+    axis.defaultValue = variable.KERN_DEFAULT
+    axis.maxValue = variable.KERN_MAX
     fvar.axes.append(axis)
     for inst in fvar.instances:
-        inst.coordinates["KERN"] = float(KERN_DEFAULT)
+        inst.coordinates["KERN"] = variable.KERN_DEFAULT
     print(
         "fvar: KERN axis added (%d-%d-%d), %d instances pinned to default"
-        % (KERN_MIN, KERN_DEFAULT, KERN_MAX, len(fvar.instances))
+        % (variable.KERN_MIN, variable.KERN_DEFAULT, variable.KERN_MAX, len(fvar.instances))
     )
     return name_id
 
@@ -135,8 +132,8 @@ def _add_kern_axis_to_stat(font: TTFont, axis_name_id: int) -> None:
     kerned_name_id = _new_name_id(font)
     _add_name(font, "Kerned", kerned_name_id)
     for value, name_id, flags in (
-        (float(KERN_DEFAULT), unkerned_name_id, 0x2),
-        (float(KERN_MAX), kerned_name_id, 0x0),
+        (variable.KERN_DEFAULT, unkerned_name_id, 0x2),
+        (variable.KERN_MAX, kerned_name_id, 0x0),
     ):
         av = ot.AxisValue()
         av.Format = 1
@@ -249,8 +246,23 @@ def _add_gpos(font: TTFont, pair_pos: ot.PairPos) -> None:
     srec.ScriptTag = "DFLT"
     srec.Script = script
 
+    # latn-first engines (Word/Adobe/CoreText) must reach the same kern
+    # lookup; HarfBuzz falls back latn->DFLT, so HarfBuzz-only testing
+    # never catches a DFLT-only table. Separate LangSys object with the
+    # same single-lookup content (sharing one object risks double-compile).
+    latn_lang_sys = ot.LangSys()
+    latn_lang_sys.LookupOrder = None
+    latn_lang_sys.ReqFeatureIndex = 0xFFFF
+    latn_lang_sys.FeatureIndex = [0]
+    latn_script = ot.Script()
+    latn_script.DefaultLangSys = latn_lang_sys
+    latn_script.ScriptLangSys = []
+    latn_rec = ot.ScriptRecord()
+    latn_rec.ScriptTag = "latn"
+    latn_rec.Script = latn_script
+
     script_list = ot.ScriptList()
-    script_list.ScriptRecord = [srec]
+    script_list.ScriptRecord = [srec, latn_rec]
 
     feature = ot.Feature()
     feature.FeatureParams = None
@@ -273,7 +285,7 @@ def _add_gpos(font: TTFont, pair_pos: ot.PairPos) -> None:
     gpos.LookupList = lookup_list
     gpos_table.table = gpos
     font["GPOS"] = gpos_table
-    print("GPOS: DFLT kern lookup with %d VariationIndex pairs" % len(KERN_PAIRS))
+    print("GPOS: DFLT+latn kern lookup with %d VariationIndex pairs" % len(KERN_PAIRS))
 
 
 def _attach_store_to_gdef(font: TTFont, store: ot.ItemVariationStore) -> None:
@@ -354,7 +366,8 @@ def build_kern_axis(src: str | Path = RAW_VF, out: str | Path = SHIPPED_VF) -> T
     # every advance moves +SPAC_MAX along SPAC by construction (the Spaced
     # master is the tight one plus SPAC_MAX). HVAR — not the raw VF's gvar
     # phantoms — defines advances once present, which also pins .notdef
-    # (Glyphs auto-boxes it and its phantom delta can disagree);
+    # (Glyphs auto-boxes it and its phantom delta can disagree). Deliberate:
+    # the delta is uniform for every glyph ID including .notdef and space.
     # the instancer tests pin advances end-to-end at 0/30/130 for all glyphs
     _add_hvar(font, [variable.SPAC_MAX] * len(font.getGlyphOrder()))
     _rebuild_gvar(font, variable.SPAC_MAX)
@@ -368,7 +381,7 @@ def main() -> None:
     parser.add_argument("--src", type=Path, default=RAW_VF, help="raw Glyphs VF input")
     parser.add_argument("--out", type=Path, default=SHIPPED_VF, help="shipped VF output")
     args: argparse.Namespace = parser.parse_args()
-    font: Any = build_kern_axis(args.src, args.out)
+    font = build_kern_axis(args.src, args.out)
     axes = [(a.axisTag, a.minValue, a.defaultValue, a.maxValue) for a in font["fvar"].axes]
     print("axes:", axes)
 

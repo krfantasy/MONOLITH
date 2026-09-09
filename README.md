@@ -33,7 +33,7 @@ Two ways to loosen the default overlap (advance = width − 30):
 value is extra advance per glyph, in font units:
 
 | SPAC | Look |
-|------|------|
+| ------ | ------ |
 | **0** (default) | shipped tight look — letters overlap by 30 |
 | **30** | ink edges exactly touch |
 | **130** | fully loose — matches the `.spaced` alternates |
@@ -62,14 +62,14 @@ has a `.spaced` alternate with 50-unit sidebearings, substituted by:
 
 MONOLITH ships **kern-free by default** — the pure block look is the default
 everywhere. On top of that, the variable font carries a **`KERN` axis
-(0–100, default 0)** that scales 742 seam-metric kern pairs (computed from
+(0–100, default 0)** that scales 932 seam-metric kern pairs (computed from
 where each letter's edge recedes from the vertical — A/V, A/J, T/… and their
 lowercase mirrors), from no kerning at 0 to full kerning at 100:
 
 - **CSS:** `font-variation-settings: "KERN" 100;`
 - Values interpolate: `KERN 50` applies every kern at half strength.
 - The statics have no kerning at all (their instance drops the feature).
-- The same 742 pairs live in the Glyphs source's native kerning table —
+- The same 932 pairs live in the Glyphs source's native kerning table —
   open Window ▸ Kerning to inspect or tweak them.
 
 ![Kerned specimen](specimens/specimen-kern100.png)

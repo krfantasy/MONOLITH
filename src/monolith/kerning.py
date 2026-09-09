@@ -124,16 +124,28 @@ def compute_kerns() -> dict[tuple[str, str], int]:
             k = proposed_value(gap)
             if k is not None:
                 out[(left, right)] = k
-    # lowercase glyphs render as the caps, so they need the same pairs
+    # lowercase glyphs render as the caps, so they need the same pairs.
+    # Digits have no lowercase variant, so only the CAPS side is lowered:
+    # CAPS+CAPS -> lower+lower, CAPS+DIGIT -> lower+DIGIT,
+    # DIGIT+CAPS -> DIGIT+lower, DIGIT+DIGIT needs no mirror.
     for (lg, rg), k in list(out.items()):
-        if lg in CAPS and rg in CAPS:
-            out[(lg.lower(), rg.lower())] = k
+        ll = lg.lower() if lg in CAPS else lg
+        rr = rg.lower() if rg in CAPS else rg
+        if (ll, rr) != (lg, rg):
+            out[(ll, rr)] = k
     return out
 
 
 KERN_PAIRS: dict[tuple[str, str], int] = {
     (lg, rg): v for (lg, rg), v in sorted(compute_kerns().items())
 }
+
+
+def _base_form(name: str) -> str:
+    """Canonical form for fallback lookup: single-letter lowercase maps to
+    its cap (lowercase renders as the caps); multi-char digit names
+    ("one".."nine") have no case variant and pass through unchanged."""
+    return name.upper() if len(name) == 1 else name
 
 
 def kern_for(left: str, right: str) -> int:
@@ -146,7 +158,7 @@ def kern_for(left: str, right: str) -> int:
     k = KERN_PAIRS.get((left, right))
     if k is not None:
         return k
-    return KERN_PAIRS.get((left.upper(), right.upper()), 0)
+    return KERN_PAIRS.get((_base_form(left), _base_form(right)), 0)
 
 
 def main() -> None:
