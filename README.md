@@ -93,28 +93,22 @@ downstream with fontTools: Glyphs 4.1's VF export rejects this document
 the base VF from the exported static and kern_axis finishes it):
 
 1. Rebuild the source and export the statics headlessly (requires
-   [Glyphs](https://glyphsapp.com) 4.1 on macOS + the `glyphs` uv group):
+   [Glyphs](https://glyphsapp.com) 4.1 on macOS + the `glyphs` uv group).
+   If Glyphs has no Python framework configured (Settings → Addons →
+   Python), export its path once per terminal — the wrapper picks it up
+   and also silences Glyphs' harmless headless telemetry spam:
 
    ```sh
    uv sync --group glyphs
-   uv run --group glyphs -- glyphs run --app 4 scripts/rebuild_cli.py --input MONOLITH.glyphs
-   uv run --group glyphs -- glyphs run --app 4 -c '
-
+   export GLYPHS_PYTHON_FW=/opt/homebrew/Frameworks/Python.framework/Versions/3.14/Python
+   scripts/glyphs-run.sh run --app 4 scripts/rebuild_cli.py --input MONOLITH.glyphs
+   scripts/glyphs-run.sh run --app 4 -c '
 st = next(i for i in Glyphs.font.instances if i.name == "ExtraBold")
 st.generate("TTF", "fonts/MONOLITH-ExtraBold.ttf")
 st.generate("OTF", "fonts/MONOLITH-ExtraBold.otf")
 print("statics exported (unkerned)")
 ' --input MONOLITH.glyphs
-
    ```
-
-   The statics export targets the ExtraBold instance only (same
-   `instance.generate` calls the GUI macro uses) — a plain
-   `glyphs export` would also emit Touching/Spaced/Variable cuts that
-   collide with the fontTools variable chain below. If `glyphs run`
-   complains about a missing Python framework, add
-   `--python <path-to-a-Python-framework-with-PyObjC>` (or set the
-   framework once in Glyphs Settings).
 
    `MONOLITH.glyphs` is rewritten in place — including the two `SPAC`
    masters and the native kerning pairs — and the statics land in `fonts/`
