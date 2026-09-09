@@ -56,7 +56,11 @@ def test_caps_carry_double_unicodes(font: dict) -> None:
     assert "a" not in glyphs
     assert "a.spaced" not in glyphs
     a = glyphs["A"]
-    unicodes = a.get("unicodes", [a.get("unicode")] if a.get("unicode") else [])
+    # Glyphs writes double-encodings under the SINGULAR `unicode` key
+    # holding an array (`unicode = (65, 97);`); single-encoded glyphs keep
+    # a plain string. Normalize to a list either way.
+    raw = a.get("unicodes", a.get("unicode"))
+    unicodes = list(raw) if isinstance(raw, (list, tuple)) else ([raw] if raw else [])
     values: set[int] = set()
     for u in unicodes:
         s = str(u)
