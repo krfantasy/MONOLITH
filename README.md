@@ -95,14 +95,16 @@ the base VF from the exported static and kern_axis finishes it):
 1. Rebuild the source and export the statics headlessly (requires
    [Glyphs](https://glyphsapp.com) 4.1 on macOS + the `glyphs` uv group):
 
-       uv sync --group glyphs
-       uv run --group glyphs -- glyphs run --app 4 scripts/rebuild_cli.py --input MONOLITH.glyphs
-       uv run --group glyphs -- glyphs run --app 4 -c '
+   ```sh
+   uv sync --group glyphs
+   uv run --group glyphs -- glyphs run --app 4 scripts/rebuild_cli.py --input MONOLITH.glyphs
+   uv run --group glyphs -- glyphs run --app 4 -c '
 st = next(i for i in Glyphs.font.instances if i.name == "ExtraBold")
 st.generate("TTF", "fonts/MONOLITH-ExtraBold.ttf")
 st.generate("OTF", "fonts/MONOLITH-ExtraBold.otf")
 print("statics exported (unkerned)")
 ' --input MONOLITH.glyphs
+   ```
 
    The statics export targets the ExtraBold instance only (same
    `instance.generate` calls the GUI macro uses) — a plain
