@@ -32,16 +32,20 @@ def main() -> None:
     m = re.search(r"const CHAR = \{.*?\};", text, re.S)
     assert m
     char, n = re.subn(
-        r'"([a-z])": "\1"', lambda m: '"%s": "%s"' % (m.group(1), m.group(1).upper()), m.group(0)
+        r'"([a-z])": "[a-zA-Z]"',
+        lambda m: '"%s": "%s"' % (m.group(1), m.group(1).upper()),
+        m.group(0),
     )
     assert n == 26, n
     text = text[: m.start()] + char + text[m.end() :]
-    text = text.replace(
-        '<span id="npairs">932</span>', '<span id="npairs">%d</span>' % len(KERN_PAIRS)
-    )
-    text = text.replace(
-        '<span id="npairs2">932</span>', '<span id="npairs2">%d</span>' % len(KERN_PAIRS)
-    )
+    for span in ("npairs", "npairs2"):
+        text, n = re.subn(
+            r'(<span id="%s">)\d+(</span>)' % span,
+            r"\g<1>%d\g<2>" % len(KERN_PAIRS),
+            text,
+            count=1,
+        )
+        assert n == 1, span
     PAGE.write_text(text, encoding="utf-8")
     print("KERN table: %d entries, CHAR a-z mapped to caps" % len(KERN_PAIRS))
 
