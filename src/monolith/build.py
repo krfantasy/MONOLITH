@@ -462,10 +462,7 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
         "SPAC axis set: %d glyphs mirrored into the Spaced master (+%d advance)"
         % (copied, spac_max)
     )
-    print(
-        "Spaced master layers holding shapes: %d of %d glyphs"
-        % (registered, len(F.glyphs))
-    )
+    print("Spaced master layers holding shapes: %d of %d glyphs" % (registered, len(F.glyphs)))
     # Only glyphs with ink in the tight master must have Spaced shapes;
     # glyphs empty in both masters (space) are compatible, not missing.
     missing = sorted(
