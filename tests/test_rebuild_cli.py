@@ -24,20 +24,17 @@ def test_explicit_save_parsed() -> None:
     assert resolve_args(["--save", "/tmp/MONOLITH.glyphs"]).save == Path("/tmp/MONOLITH.glyphs")
 
 
-def test_repo_defaults_to_doc_dir() -> None:
+def test_repo_from_script_location() -> None:
+    _, repo_for = _load()
+    assert repo_for("/repo/scripts/rebuild_cli.py", "/elsewhere/doc.glyphs") == Path("/repo")
+
+
+def test_repo_falls_back_to_doc_dir() -> None:
     _, repo_for = _load()
     assert repo_for(None, "/repo/MONOLITH.glyphs") == Path("/repo")
 
 
-def test_explicit_save_wins() -> None:
-    _, repo_for = _load()
-    assert (
-        repo_for(Path("/tmp/o.glyphs"), "/repo/MONOLITH.glyphs")
-        == Path("/tmp/o.glyphs").resolve().parent
-    )
-
-
-def test_missing_paths_exits() -> None:
+def test_missing_repo_inputs_exits() -> None:
     import pytest
 
     _, repo_for = _load()

@@ -5,7 +5,9 @@ Run from the repo root on a Mac with Glyphs 4.1 + the `glyphs` uv group:
     glyphs run scripts/rebuild_cli.py --input MONOLITH.glyphs
 
 Optional `--save` writes the rebuilt source elsewhere (default: save back
-to the opened document's own path, same as the GUI macro's in-place save):
+to the opened document's own path, same as the GUI macro's in-place save).
+The checkout imported for monolith.build is pinned to this script's own
+repo, so --save is purely an output path and /tmp outputs work:
 
     glyphs run scripts/rebuild_cli.py --input MONOLITH.glyphs -- --save /tmp/MONOLITH.glyphs
 
@@ -29,13 +31,20 @@ def resolve_args(argv: list[str] | None = None) -> argparse.Namespace:
     return ap.parse_args(argv)
 
 
-def repo_for(save: Path | None, doc_path: str) -> Path:
-    """Checkout dir: explicit --save wins, else the opened document's folder."""
-    if save is not None:
-        return save.resolve().parent
+def repo_for(script_path: str | None, doc_path: str) -> Path:
+    """Checkout dir holding src/: this script's repo, else the document's folder.
+
+    --save is only an output path and never decides where src/ lives, so
+    `--save /tmp/...` rebuilds against the checkout this file lives in.
+    Hosts that exec scripts without __file__ fall back to the opened
+    document's folder (the GUI macro's derivation).
+    """
+    if script_path:
+        return Path(script_path).resolve().parents[1]
     if not doc_path:
         raise SystemExit(
-            "no --save and the opened document has no path; save the file in Glyphs first"
+            "cannot locate the checkout (no script path and the opened document"
+            " has no path); run via: glyphs run scripts/rebuild_cli.py --input MONOLITH.glyphs"
         )
     return Path(doc_path).resolve().parent
 
@@ -59,13 +68,14 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit(
             "no --save and the opened document has no path; save the file in Glyphs first"
         )
-    repo = repo_for(args.save, doc_path)
+    script_path = globals().get("__file__")
+    repo = repo_for(str(script_path) if script_path else None, doc_path)
     sys.path.insert(0, str(repo / "src"))
     for mod in [m for m in sys.modules if m == "monolith" or m.startswith("monolith.")]:
         del sys.modules[mod]
     import monolith.build as build  # noqa: E402
 
-    build.run(font, save_path)
+    build.run(font, save_path)  # build.run raises when the save fails
     print("REBUILD DONE: %s" % save_path)
 
 
