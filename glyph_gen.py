@@ -1,4 +1,7 @@
 # MONOLITH ExtraBold - brutalist block font generator for Glyphs 3
+# DEPRECATED — do not use: this recreates the deleted component lowercase
+# (a-z/a.spaced-z.spaced). The builder is src/monolith/build.py; see
+# scripts/macro_bootstrap.py.
 # Run inside Glyphs: Window > Macro Panel > exec this file > Run
 import math
 from GlyphsApp import (Glyphs, GSPath, GSNode, GSGlyph, GSLayer, GSComponent,

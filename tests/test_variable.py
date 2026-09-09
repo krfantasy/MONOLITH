@@ -263,7 +263,15 @@ def test_shipped_outlines_are_unioned_like_the_static(vf: TTFont) -> None:
 
 
 def test_lowercase_double_encodes_to_caps(vf: TTFont) -> None:
+    import string
+
     cmap = vf.getBestCmap()
+    order = vf.getGlyphOrder()
+    for lo in string.ascii_lowercase:
+        up = lo.upper()
+        assert cmap[ord(lo)] == up, lo
+        assert lo not in order, lo
+        assert lo + ".spaced" not in order, lo
     assert cmap[ord("a")] == "A"
     assert cmap[ord("z")] == "Z"
     assert "a" not in vf.getGlyphOrder()

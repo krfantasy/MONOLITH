@@ -11,8 +11,14 @@ want them to breathe.
 
 `A–Z` double-encoded so `a–z` type as the caps, `0–9` (the zero carries an
 attached diagonal slash to stay distinct from `O` at small sizes), and full
-printable ASCII punctuation & symbols plus en/em dashes — 97 glyphs, plus a
-`.spaced` alternate for every glyph except the space.
+printable ASCII punctuation & symbols plus en/em dashes — 71 glyphs covering
+97 encoded characters, plus a `.spaced` alternate for every glyph except the
+space (70 alternates; 142 glyphs total with .notdef).
+
+Component-era checkouts converge by rerunning the macro (stale `a–z`
+glyphs are auto-deleted by the `KEEP` prune). Accepted tradeoffs: old
+Acrobat-Distiller PDF workflows may garble clipboard casing; Turkish `i`
+renders as dotless `I` (unchanged behavior).
 
 ## Install
 

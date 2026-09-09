@@ -52,21 +52,24 @@ def test_master_locations_span_the_spac_axis(font: dict) -> None:
 
 
 def test_caps_carry_double_unicodes(font: dict) -> None:
+    import string
+
     glyphs = {g["glyphname"]: g for g in font.get("glyphs", [])}
-    assert "a" not in glyphs
-    assert "a.spaced" not in glyphs
-    a = glyphs["A"]
-    # Glyphs writes double-encodings under the SINGULAR `unicode` key
-    # holding an array (`unicode = (65, 97);`); single-encoded glyphs keep
-    # a plain string. Normalize to a list either way.
-    raw = a.get("unicodes", a.get("unicode"))
-    unicodes = list(raw) if isinstance(raw, (list, tuple)) else ([raw] if raw else [])
-    values: set[int] = set()
-    for u in unicodes:
-        s = str(u)
-        values.add(int(s))
-        try:
-            values.add(int(s, 16))
-        except ValueError:
-            pass
-    assert {65, 97} <= values
+    for lo in string.ascii_lowercase:
+        up = lo.upper()
+        assert lo not in glyphs
+        assert lo + ".spaced" not in glyphs
+        g = glyphs[up]
+        # Glyphs writes double-encodings under the SINGULAR `unicode` key
+        # holding an array (`unicode = (65, 97);`); single-encoded glyphs
+        # keep a plain string. Normalize to a list either way.
+        raw = g.get("unicodes", g.get("unicode"))
+        unicodes = list(raw) if isinstance(raw, (list, tuple)) else ([raw] if raw else [])
+        values: set[int] = set()
+        for u in unicodes:
+            s = str(u)
+            try:
+                values.add(int(s))
+            except ValueError:
+                values.add(int(s, 16))
+        assert values == {ord(up), ord(lo)}, up

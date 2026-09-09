@@ -25,8 +25,6 @@ REPO = Path(_doc_path).resolve().parent
 sys.path.insert(0, str(REPO / "src"))
 print("checkout: %s" % REPO)
 
-import importlib  # noqa: E402
-
 # The Macro Panel caches imported modules between Runs (possibly from
 # another checkout): reload(build) alone rebinds `from monolith.design
 # import ...` against the STALE cached modules, mixing new build.py with
@@ -35,8 +33,6 @@ for _mod in [m for m in sys.modules if m == "monolith" or m.startswith("monolith
     del sys.modules[_mod]
 
 import monolith.build as build  # noqa: E402
-
-importlib.reload(build)  # the Macro Panel caches modules between runs
 
 f = build.run()
 
