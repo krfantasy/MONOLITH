@@ -218,7 +218,7 @@ def test_outlines_identical_at_every_position(vf: TTFont) -> None:
     # the SPAC axis must be metric-only: outlines at SPAC 130 == outlines at
     # the default. KERN is GPOS-only, so no variation table moves an outline.
     at_max = variable.instance_at_spac(VF, variable.SPAC_MAX)
-    for gname in ("A", "V", "one", "zero", "a"):
+    for gname in ("A", "V", "one", "zero"):
         ref = _contours(vf, gname)
         assert _contours(at_max, gname) == ref, gname
 
@@ -258,5 +258,13 @@ def test_shipped_outlines_are_unioned_like_the_static(vf: TTFont) -> None:
         return tuple(sorted(out))
 
     static = TTFont(str(FONT))
-    for gname in ("A", "E", "F", "H", "O", "R", "one", "zero", "a", "zero.spaced"):
+    for gname in ("A", "E", "F", "H", "O", "R", "one", "zero", "zero.spaced"):
         assert regions(vf, gname) == regions(static, gname), gname
+
+
+def test_lowercase_double_encodes_to_caps(vf: TTFont) -> None:
+    cmap = vf.getBestCmap()
+    assert cmap[ord("a")] == "A"
+    assert cmap[ord("z")] == "Z"
+    assert "a" not in vf.getGlyphOrder()
+    assert "a.spaced" not in vf.getGlyphOrder()

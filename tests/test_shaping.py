@@ -93,3 +93,8 @@ def test_kern_and_spac_compose(vf_path: Path) -> None:
 
 def test_solid_pair_unaffected(vf_path: Path) -> None:
     assert _shaped_positions(vf_path, "HH", kern=100) == [590, 590]
+
+
+def test_lowercase_shapes_as_caps(vf_path: Path) -> None:
+    assert _shaped_positions(vf_path, "a") == _shaped_positions(vf_path, "A")
+    assert _shaped_positions(vf_path, "av", kern=100) == _shaped_positions(vf_path, "AV", kern=100)

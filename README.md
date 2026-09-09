@@ -9,7 +9,7 @@ want them to breathe.
 
 ## Glyph set
 
-`A–Z`, `a–z` (uppercase forms for both cases), `0–9` (the zero carries an
+`A–Z` double-encoded so `a–z` type as the caps, `0–9` (the zero carries an
 attached diagonal slash to stay distinct from `O` at small sizes), and full
 printable ASCII punctuation & symbols plus en/em dashes — 97 glyphs, plus a
 `.spaced` alternate for every glyph except the space.
@@ -62,14 +62,14 @@ has a `.spaced` alternate with 50-unit sidebearings, substituted by:
 
 MONOLITH ships **kern-free by default** — the pure block look is the default
 everywhere. On top of that, the variable font carries a **`KERN` axis
-(0–100, default 0)** that scales 932 seam-metric kern pairs (computed from
-where each letter's edge recedes from the vertical — A/V, A/J, T/… and their
-lowercase mirrors), from no kerning at 0 to full kerning at 100:
+(0–100, default 0)** that scales 486 seam-metric kern pairs (computed from
+where each letter's edge recedes from the vertical — A/V, A/J, T/…), from
+no kerning at 0 to full kerning at 100:
 
 - **CSS:** `font-variation-settings: "KERN" 100;`
 - Values interpolate: `KERN 50` applies every kern at half strength.
 - The statics have no kerning at all (their instance drops the feature).
-- The same 932 pairs live in the Glyphs source's native kerning table —
+- The same 486 pairs live in the Glyphs source's native kerning table —
   open Window ▸ Kerning to inspect or tweak them.
 
 ![Kerned specimen](specimens/specimen-kern100.png)

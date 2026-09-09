@@ -8,7 +8,7 @@ and writes fonts/MONOLITH-Variable-raw.ttf. This module finishes it:
 - fvar gains a KERN axis: min 0, DEFAULT 0 (kern off unless asked), max 100.
 - GDEF gains an ItemVariationStore with one region (KERN peak 100) and one
   delta per seam-metric pair from monolith.kerning.KERN_PAIRS — the same
-  932 values shown in the Glyphs Kerning window.
+  486 values shown in the Glyphs Kerning window.
 - A GPOS `kern` feature (default-on in every shaper) holds PairPos records
   whose XAdvance is 0 plus a VariationIndex device into that store, so a
   KERN coordinate of t applies each kern scaled by t/100.

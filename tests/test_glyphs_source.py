@@ -49,3 +49,20 @@ def test_no_axis_location_parameters(font: dict) -> None:
 def test_master_locations_span_the_spac_axis(font: dict) -> None:
     values = sorted(int(v) for m in font["fontMaster"] for v in m["axesValues"])
     assert values == [0, 130]
+
+
+def test_caps_carry_double_unicodes(font: dict) -> None:
+    glyphs = {g["glyphname"]: g for g in font.get("glyphs", [])}
+    assert "a" not in glyphs
+    assert "a.spaced" not in glyphs
+    a = glyphs["A"]
+    unicodes = a.get("unicodes", [a.get("unicode")] if a.get("unicode") else [])
+    values: set[int] = set()
+    for u in unicodes:
+        s = str(u)
+        values.add(int(s))
+        try:
+            values.add(int(s, 16))
+        except ValueError:
+            pass
+    assert {65, 97} <= values
