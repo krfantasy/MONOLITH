@@ -40,23 +40,28 @@ f = build.run()
 import os  # noqa: E402
 
 from Foundation import NSClassFromString, NSURL  # noqa: E402
-from GlyphsApp import GlyphsApp  # noqa: E402
+
+# Glyphs 4: the module exports these directly (there is no "GlyphsApp"
+# name inside the GlyphsApp module any more — that import dies on 4.x)
+from GlyphsApp import (  # noqa: E402
+    GSOutlineFormatVariableTT,
+    PLAIN,
+    _ExporterDelegate_,
+)
 
 vf_dir = REPO / "fonts"
 inst = next(i for i in f.instances if i.name == "ExtraBold")
 exporter = (
     NSClassFromString("GSExportInstanceOperation")
     .alloc()
-    .initWithFont_instance_outlineFormat_containers_(
-        f, inst, GlyphsApp.GSOutlineFormatVariableTT, [GlyphsApp.PLAIN]
-    )
+    .initWithFont_instance_outlineFormat_containers_(f, inst, GSOutlineFormatVariableTT, [PLAIN])
 )
 exporter.setInstallFontURL_(NSURL.fileURLWithPath_(str(vf_dir / "MONOLITH-Variable.ttf")))
 exporter.setAutohint_(False)
 exporter.setRemoveOverlap_(False)
 exporter.setUseSubroutines_(False)
 exporter.setUseProductionNames_(False)
-delegate = GlyphsApp._ExporterDelegate_.new()
+delegate = _ExporterDelegate_.new()
 exporter.setDelegate_(delegate)
 exporter.main()
 if not (vf_dir / "ExtraBold.ttf").exists():

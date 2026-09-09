@@ -116,7 +116,8 @@ def master_layer(F: Any, master: Any, g: GSGlyph) -> GSLayer:
         return g.layers[0]
     nl = GSLayer()
     nl.associatedMasterId = master.id
-    g.layers.append(nl)
+    # Glyphs 4: the layer proxy has no append — insertAtIndex is the mutator
+    g.layers.insert(len(g.layers), nl)
     return nl
 
 
@@ -143,20 +144,11 @@ def remove_glyph(F: Any, g: GSGlyph) -> bool:
 
 
 def clear_shapes(layer: GSLayer) -> None:
-    errors = []
-    try:
-        for i in reversed(range(len(layer.shapes))):
-            del layer.shapes[i]
-        return
-    except Exception as e:
-        errors.append(repr(e))
-    try:
-        for i in reversed(range(len(layer.paths))):
-            del layer.paths[i]
-        return
-    except Exception as e:
-        errors.append(repr(e))
-    raise RuntimeError("clear failed: %s" % errors)
+    # Glyphs 4: layer.shapes is the one mutable collection — layer.paths and
+    # layer.components are iterate-only proxies now (GSProxyShapes), and
+    # shapes holds paths and components alike.
+    for i in reversed(range(len(layer.shapes))):
+        del layer.shapes[i]
 
 
 def set_unicode(g: GSGlyph, name: str) -> None:
@@ -202,21 +194,25 @@ def drop_feature(F: Any, fname: str) -> None:
 def set_native_kerning(F: Any) -> None:
     """Write every seam-metric pair into Glyphs' native kerning table.
 
-    Keys MUST be plain strings: font.kerning[masterID][leftName][rightName]
-    = int. A tuple-keyed dict here once poisoned the document (F.save died
-    with "OC_BuiltinPythonArray hasPrefix:"). Both masters get identical
-    values so kerning stays constant along SPAC; the KERN axis post-step
-    scales it 0-100. The kern feature must not coexist with this — Glyphs
-    would compile both and double every kern.
+    Uses setKerningForPair — the documented integrity-checked API (the
+    Glyphs 4 docu discourages writing the kerning dict directly, and a
+    tuple-keyed dict here once poisoned a 3.5 document's F.save). Keys are
+    plain glyph-name strings. Both masters get identical values so kerning
+    stays constant along SPAC; the KERN axis post-step scales it 0-100.
+    The kern feature must not coexist with this — Glyphs would compile
+    both and double every kern.
     """
+    sample = next(iter(KERN_PAIRS))
     for master in F.masters:
         mid = master.id
-        F.kerning[mid] = {}
-        lefts = F.kerning[mid]
         for (lg, rg), v in sorted(KERN_PAIRS.items()):
-            if lg not in lefts:
-                lefts[lg] = {}
-            lefts[lg][rg] = int(v)
+            F.setKerningForPair(mid, lg, rg, int(v))
+        got = F.kerningForPair(mid, sample[0], sample[1])
+        if got != KERN_PAIRS[sample]:
+            raise RuntimeError(
+                "kerning read-back mismatch on %s: %s%r -> %r"
+                % (master.name, sample, KERN_PAIRS[sample], got)
+            )
         print("native kerning: %d pairs on master %s" % (len(KERN_PAIRS), master.name))
 
 
@@ -267,12 +263,9 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
             if remove_glyph(F, g):
                 g = None
             else:
+                # fresh shapes wipe paths and components alike (Glyphs 4:
+                # there is no separate components mutator any more)
                 layer = master_layer(F, master, g)
-                try:
-                    for i in reversed(range(len(layer.components))):
-                        del layer.components[i]
-                except Exception as e:
-                    print("component clear fail", name, e)
                 clear_shapes(layer)
         if g is None:
             g = GSGlyph(name)
@@ -280,7 +273,8 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
             created += 1
         layer = master_layer(F, master, g)
         for shape in gl.shapes:
-            layer.paths.append(adapt(shape))
+            # Glyphs 4: layer.paths is iterate-only; shapes is the mutator
+            layer.shapes.append(adapt(shape))
         layer.width = tight_advance(name)
         set_unicode(g, name)
     print("letters/figures/punct drawn, new glyphs:", created)
@@ -299,10 +293,7 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
             F.glyphs.append(g)
             created += 1
         layer = master_layer(F, master, g)
-        try:
-            layer.components.append(GSComponent(up))
-        except Exception as e:
-            print("component", lo, e)
+        layer.shapes.append(GSComponent(up))
         layer.width = master_layer(F, master, F.glyphs[up]).width
         set_unicode(g, lo)
     print("lowercase mapped to caps, total glyphs:", len(F.glyphs))
@@ -315,7 +306,7 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
         g = fresh_glyph(F, name + ".spaced")
         layer = master_layer(F, master, g)
         for shape in gl.shapes:
-            layer.paths.append(adapt(shape))
+            layer.shapes.append(adapt(shape))
         try:
             layer.LSB = SPACED_LSB
         except Exception:
@@ -329,10 +320,7 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
     for lo, up in zip(LOWERCASE, LOWERCASE.upper()):
         g = fresh_glyph(F, lo + ".spaced")
         layer = master_layer(F, master, g)
-        try:
-            layer.components.append(GSComponent(up + ".spaced"))
-        except Exception as e:
-            print("component", lo, e)
+        layer.shapes.append(GSComponent(up + ".spaced"))
         layer.width = master_layer(F, master, F.glyphs[up + ".spaced"]).width
 
     subs = ["sub %s by %s.spaced;" % (n, n) for n in substitution_names()]
@@ -393,10 +381,10 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
                 nn.type = nd.type
                 nn.position = (nd.position.x, nd.position.y)
                 np_.nodes.append(nn)
-            dst.paths.append(np_)
+            dst.shapes.append(np_)
         for c in src.components:
             base = getattr(c, "name", None) or c.glyphName
-            dst.components.append(GSComponent(base))
+            dst.shapes.append(GSComponent(base))
         dst.width = src.width + spac_max
         copied += 1
     registered = sum(
