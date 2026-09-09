@@ -6,7 +6,6 @@
 # the checkout is derived from the frontmost document: open
 # <repo>/MONOLITH.glyphs before pressing Run. Close other fonts first —
 # the frontmost document decides which checkout gets rebuilt.
-import os
 import sys
 from pathlib import Path
 
@@ -33,34 +32,6 @@ importlib.reload(build)  # the Macro Panel caches modules between runs
 
 f = build.run()
 
-# --- variable font -----------------------------------------------------------
-# Glyphs 4 exports variable fonts through a VARIABLE-TYPE instance via the
-# public generate() — the same path File > Export uses (it picks the
-# VariableTT outline format itself). Hand-wiring GSExportInstanceOperation
-# with a static instance + VariableTT format — the 3.5 workaround — crashes
-# 4.x natively. The exporter names the file after the instance, hence the
-# rename fallback.
-from GlyphsApp import GSInstance, INSTANCETYPEVARIABLE  # noqa: E402
-
-vf_dir = REPO / "fonts"
-target = vf_dir / "MONOLITH-Variable-raw.ttf"
-var_inst = next((i for i in f.instances if i.type == INSTANCETYPEVARIABLE), None)
-if var_inst is None:
-    var_inst = GSInstance()
-    # the Python property is getter-only in 4.x; the ObjC setter works
-    var_inst.setType_(INSTANCETYPEVARIABLE)
-    var_inst.name = "Variable"
-    f.instances.append(var_inst)
-error = var_inst.generate("TTF", str(target))
-if error:
-    raise SystemExit("VF export failed: %s" % error)
-if not target.exists():
-    produced = vf_dir / ("%s.ttf" % var_inst.name)
-    if not produced.exists():
-        raise SystemExit("VF export produced no file next to %s" % target)
-    os.rename(produced, target)
-print("raw VF exported -> fonts/MONOLITH-Variable-raw.ttf")
-
 # --- statics -----------------------------------------------------------------
 # ExtraBold carries the "Remove Features: kern" custom parameter, so the
 # static cut ships unkerned (pure block look) even though the doc has
@@ -71,6 +42,12 @@ static.generate("OTF", str(REPO / "fonts" / "MONOLITH-ExtraBold.otf"))
 print("statics exported (unkerned)")
 
 # --- final step (outside Glyphs) --------------------------------------------
+# Do NOT export a variable font here: Glyphs 4.1's scripted VF export
+# crashes the app (both the hand-wired GSExportInstanceOperation and a
+# VARIABLE-type instance's generate()). The variable font is assembled
+# outside with fontTools — SPAC is metric-only, so the loose master is
+# just the static with +130 advances.
 print("NOW RUN: uv run python -m monolith.kern_axis")
-print("  (adds the KERN 0-100 axis to the VF -> fonts/MONOLITH-Variable.ttf)")
+print("  (builds the variable font from the static with fontTools and adds")
+print("   the KERN 0-100 axis + HVAR -> fonts/MONOLITH-Variable.ttf)")
 print("REGEN + EXPORT DONE")

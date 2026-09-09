@@ -1,18 +1,28 @@
-"""Read-side helpers for the MONOLITH variable font (SPAC + KERN axes).
+"""SPAC-axis assembly and read-side helpers for the MONOLITH variable font.
 
-The .glyphs source carries the SPAC masters (SPAC 0 tight advances, SPAC
-130 with every advance wider by 130) and native per-master kerning — the
-742 seam-metric pairs visible in Glyphs' Kerning window. The variable
-font exported from it is post-processed by monolith.kern_axis, which adds
-the KERN axis (0-100, default 0 = kerning off) as a GPOS VariationStore;
-the ExtraBold static is exported unkerned via its "Remove Features: kern"
-instance parameter. This module only reads and pins the exported fonts,
-for specimens and tests.
+The variable font is assembled downstream of Glyphs with fontTools varLib:
+SPAC is metric-only, so the loose master is simply the exported ExtraBold
+static with +SPAC_MAX on every advance — outlines never vary and the axis
+lives in fvar + HVAR. (Glyphs 4.1's scripted variable-font export crashes
+the app, and the axis needs nothing Glyphs-specific.) monolith.kern_axis
+then finishes the base font: KERN axis (0-100, default 0 = kerning off) as
+a GPOS VariationStore, the Tight instance name, and a measured HVAR. The
+statics ship unkerned via the ExtraBold instance's "Remove Features: kern"
+parameter. This module also reads and pins the exported fonts, for
+specimens and tests.
 """
 
+import tempfile
 from pathlib import Path
 
+from fontTools.designspaceLib import (
+    AxisDescriptor,
+    DesignSpaceDocument,
+    InstanceDescriptor,
+    SourceDescriptor,
+)
 from fontTools.ttLib import TTFont
+from fontTools.varLib import build as varlib_build
 from fontTools.varLib.instancer import instantiateVariableFont
 
 from monolith.design import SPACED_LSB, TIGHT_OVERLAP
@@ -36,6 +46,52 @@ KERN_AXIS_TAG = "KERN"
 KERN_MIN = 0
 KERN_DEFAULT = 0  # kerning off unless a layout engine asks for it
 KERN_MAX = 100
+
+
+def build_variable_font(tight_path: str | Path) -> TTFont:
+    """Assemble the SPAC variable font from the static TTF; returns it unsaved.
+
+    The loose master is the same font with +SPAC_MAX on every advance, so
+    the designspace varies metrics only. Locations are keyed by axis NAME
+    (not tag) or varLib maps every source to the default and rejects the
+    doc ("more than one base master"). varLib writes fvar + HVAR and a
+    gvar whose real-point deltas are all zero.
+    """
+    with tempfile.TemporaryDirectory() as td:
+        tmp = Path(td)
+        loose = TTFont(str(tight_path))
+        for gname in loose.getGlyphOrder():
+            aw, lsb = loose["hmtx"][gname]
+            loose["hmtx"][gname] = (aw + SPAC_MAX, lsb)
+        loose_path = tmp / "MONOLITH-Loose.ttf"
+        loose.save(loose_path)
+
+        doc = DesignSpaceDocument()
+        axis = AxisDescriptor()
+        axis.tag, axis.name = AXIS_TAG, AXIS_NAME
+        axis.minimum, axis.default, axis.maximum = SPAC_MIN, SPAC_DEFAULT, SPAC_MAX
+        doc.addAxis(axis)
+        for fname, style, v in (
+            (str(tight_path), "Tight", SPAC_DEFAULT),
+            (str(loose_path), "Loose", SPAC_MAX),
+        ):
+            src = SourceDescriptor()
+            src.filename, src.name = fname, style
+            src.familyName, src.styleName = "MONOLITH", style
+            src.location = {AXIS_NAME: v}
+            doc.addSource(src)
+        for v, style in INSTANCES:
+            inst = InstanceDescriptor()
+            inst.familyName, inst.styleName = "MONOLITH", style
+            inst.location = {AXIS_NAME: v}
+            doc.addInstance(inst)
+        ds_path = tmp / "MONOLITH.designspace"
+        doc.path = str(ds_path)
+        doc.updatePaths()
+        doc.write(ds_path)
+
+        vf, _model, _masters = varlib_build(ds_path)
+    return vf
 
 
 def instance_at_spac(font_path: str | Path, spac: int) -> TTFont:

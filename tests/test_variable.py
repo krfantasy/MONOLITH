@@ -1,8 +1,10 @@
 """The shipped variable font: SPAC + KERN axes, advances, outline invariance.
 
-The shipped font is the Glyphs VF export (fonts/MONOLITH-Variable-raw.ttf)
-post-processed by monolith.kern_axis, which adds the KERN axis with a GPOS
-VariationStore built from the same KERN_PAIRS the Kerning window shows.
+The variable font is assembled with fontTools varLib from the exported
+static (SPAC is metric-only: the loose master is the same outlines with
++130 advances) and finished by monolith.kern_axis, which adds the KERN
+axis with a GPOS VariationStore built from the same KERN_PAIRS the
+Kerning window shows.
 """
 
 from pathlib import Path
@@ -72,34 +74,41 @@ def test_named_instances_pinned_by_name(vf: TTFont) -> None:
 
 
 def test_hvar_carries_spac_advances(vf: TTFont) -> None:
-    """Advances live in HVAR (delta index = glyph ID), matching the raw
-    font's gvar phantom deltas — 130 for every real glyph, -500 for
-    .notdef's auto-sized box."""
+    """Advances live in HVAR (delta index = glyph ID). The metric-only
+    construction makes the delta uniformly +130 for every glyph —
+    .notdef and space included."""
     store = vf["HVAR"].table.VarStore
     assert store is not None
     data = store.VarData[0]
     assert data.ItemCount == len(vf.getGlyphOrder())
     by_delta: dict[int, int] = {}
-    for gname, item in zip(vf.getGlyphOrder(), data.Item):
+    for item in data.Item:
         by_delta[item[0]] = by_delta.get(item[0], 0) + 1
-    assert by_delta == {130: 193, -500: 1}
+    assert by_delta == {130: 194}
 
 
-def test_kern_axis_rebuild_is_idempotent(tmp_path: Path) -> None:
-    """Running kern_axis on its own output must not grow the name table or
-    duplicate axes (the old version allocated a fresh "Kern" nameID on
-    every pass, before the STAT early-return)."""
+def test_kern_axis_build_is_deterministic(tmp_path: Path) -> None:
+    """Two builds from the same static must land on identical tables, one
+    "Kern" name record and exactly two axes."""
     from monolith import kern_axis
 
-    raw = REPO_ROOT / "fonts" / "MONOLITH-Variable-raw.ttf"
-    once = kern_axis.build_kern_axis(raw, tmp_path / "once.ttf")
-    twice = kern_axis.build_kern_axis(tmp_path / "once.ttf", tmp_path / "twice.ttf")
+    static = REPO_ROOT / "fonts" / "MONOLITH-ExtraBold.ttf"
+    once = kern_axis.build_kern_axis(static, tmp_path / "once.ttf")
+    twice = kern_axis.build_kern_axis(static, tmp_path / "twice.ttf")
 
     for font in (once, twice):
         assert [ax.axisTag for ax in font["fvar"].axes] == ["SPAC", "KERN"]
         assert len(font["fvar"].instances) == 3
         kern_ids = {r.nameID for r in font["name"].names if r.toUnicode() == "Kern"}
         assert len(kern_ids) == 1, kern_ids
+    a, b = (
+        TTFont(str(tmp_path / "once.ttf"), lazy=True),
+        TTFont(str(tmp_path / "twice.ttf"), lazy=True),
+    )
+    for tag in sorted(set(a.keys()) - {"head", "GlyphOrder"}):
+        assert a.reader[tag] == b.reader[tag], tag
+    a.close()
+    b.close()
 
 
 def test_kern_wiring_store_and_feature(vf: TTFont) -> None:
@@ -159,9 +168,8 @@ def test_spaced_alternates_get_the_same_delta(vf: TTFont) -> None:
 def test_outlines_identical_at_every_position(vf: TTFont) -> None:
     # the SPAC axis must be metric-only: outlines at SPAC 130 == outlines at
     # the default. KERN is GPOS-only, so gvar never moves an outline for it.
-    # (Outlines are NOT byte-equal to the statics — Glyphs' VF export keeps
-    # overlapping contours where static exports remove them — but they
-    # rasterize identically, which the shaping/specimen tests cover.)
+    # (The VF is built from the statics, so outlines are the overlap-removed
+    # static contours — identical between masters by construction.)
     at_max = variable.instance_at_spac(VF, variable.SPAC_MAX)
     for gname in ("A", "V", "one", "zero", "a"):
         ref = _contours(vf, gname)

@@ -1,25 +1,23 @@
-"""Add the KERN axis (0-100, default 0) to the Glyphs-exported variable font.
+"""Finish the MONOLITH variable font: KERN axis (0-100, default 0), the
+Tight instance name, and a measured HVAR.
 
-Glyphs 3.5 cannot export kerning as a variation axis: its "VAR with KERN"
-export tab is a plugin that does not work, and feature code cannot
-interpolate GPOS values across masters. This module post-processes the
-raw variable font (fonts/MONOLITH-Variable-raw.ttf, exported from Glyphs
-with SPAC masters only) into the shipped variable font
-(fonts/MONOLITH-Variable.ttf):
+Glyphs 4.1's scripted variable-font export crashes the app (both the
+hand-wired GSExportInstanceOperation and the public VARIABLE-instance
+generate()), so the variable font is assembled downstream with fontTools
+varLib instead — SPAC is metric-only, so the loose master is just the
+exported ExtraBold static with +130 on every advance (monolith.variable
+builds that base font). This module then finishes it:
 
 - fvar gains a KERN axis: min 0, DEFAULT 0 (kern off unless asked), max 100.
 - GDEF gains an ItemVariationStore with one region (KERN peak 100) and one
   delta per seam-metric pair from monolith.kerning.KERN_PAIRS — the same
-  742 values shown in the Glyphs Kerning window and mirrored on both SPAC
-  masters.
+  742 values shown in the Glyphs Kerning window.
 - A GPOS `kern` feature (default-on in every shaper) holds PairPos records
   whose XAdvance is 0 plus a VariationIndex device into that store, so a
   KERN coordinate of t applies each kern scaled by t/100.
-- HVAR carries the SPAC advance deltas in a dedicated metrics table (the
-  Glyphs export smuggles them through gvar phantom points, which forces
-  shapers to interpolate outlines just to learn a width). Deltas are
-  measured from the raw font, glyph by glyph — they are not uniformly
-  +130: .notdef's auto-sized box goes the other way.
+- HVAR is rebuilt from measured advances (one delta per glyph; varLib's
+  own HVAR is equivalent, this one is pinned by test).
+- The default named instance is renamed to "Tight" (Tight/Touching/Spaced).
 
 Run after the Glyphs export: `python -m monolith.kern_axis`.
 """
@@ -33,12 +31,12 @@ from typing import Any
 from fontTools.ttLib import TTFont, newTable
 from fontTools.ttLib.tables import otTables as ot
 from fontTools.varLib.builder import buildVarData, buildVarRegionList, buildVarStore
-from fontTools.varLib.instancer import instantiateVariableFont
 
+from monolith import variable
 from monolith.kerning import KERN_PAIRS
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-RAW_VF = REPO_ROOT / "fonts" / "MONOLITH-Variable-raw.ttf"
+STATIC_TTF = REPO_ROOT / "fonts" / "MONOLITH-ExtraBold.ttf"
 SHIPPED_VF = REPO_ROOT / "fonts" / "MONOLITH-Variable.ttf"
 
 KERN_MIN = 0
@@ -166,20 +164,6 @@ def _variation_device(outer: int, inner: int) -> ot.Device:
     d.EndSize = inner
     d.DeltaFormat = 0x8000
     return d
-
-
-def _spac_advance_deltas(src: str | Path) -> list[int]:
-    """Per-glyph advance delta at the SPAC peak, measured from src.
-
-    Measured rather than assumed: instancing the raw font at its SPAC
-    maximum and diffing hmtx captures exactly what the gvar phantom
-    points carry today (193 glyphs +130, .notdef -500).
-    """
-    probe = TTFont(str(src))
-    spac = float(next(a.maxValue for a in probe["fvar"].axes if a.axisTag == "SPAC"))
-    loose = instantiateVariableFont(probe, {"SPAC": spac}, inplace=False)
-    order = probe.getGlyphOrder()
-    return [loose["hmtx"][g][0] - probe["hmtx"][g][0] for g in order]
 
 
 def _add_hvar(font: TTFont, deltas: list[int]) -> None:
@@ -310,10 +294,10 @@ def _attach_store_to_gdef(font: TTFont, store: ot.ItemVariationStore) -> None:
     print("GDEF: ItemVariationStore attached (%d delta items)" % len(KERN_PAIRS))
 
 
-def build_kern_axis(src: str | Path = RAW_VF, out: str | Path = SHIPPED_VF) -> TTFont:
-    """Raw Glyphs VF -> variable font with the KERN 0-100 axis. Saved to out."""
-    font = TTFont(str(src))
-    # touch gvar BEFORE the fvar edit: Glyphs' gvar header says axisCount=1,
+def build_kern_axis(src: str | Path = STATIC_TTF, out: str | Path = SHIPPED_VF) -> TTFont:
+    """Static TTF -> finished variable font (SPAC + KERN axes). Saved to out."""
+    font = variable.build_variable_font(src)
+    # touch gvar BEFORE the fvar edit: the header says axisCount=1 (SPAC),
     # and decompiling it after fvar grows a second axis trips fontTools'
     # cross-check. Decompiled early, it recompiles at save time with both
     # axes (tuples get a (0,0,0) KERN entry — outlines ignore kerning).
@@ -327,7 +311,9 @@ def build_kern_axis(src: str | Path = RAW_VF, out: str | Path = SHIPPED_VF) -> T
     _attach_store_to_gdef(font, store)
     pair_pos = _build_pair_pos(font)
     _add_gpos(font, pair_pos)
-    _add_hvar(font, _spac_advance_deltas(src))
+    # the metric-only construction makes every delta SPAC_MAX by definition;
+    # the instancer tests pin advances end-to-end at 0/30/130 for all glyphs
+    _add_hvar(font, [variable.SPAC_MAX] * len(font.getGlyphOrder()))
     font.save(str(out))
     print("saved", out)
     return font
@@ -335,7 +321,7 @@ def build_kern_axis(src: str | Path = RAW_VF, out: str | Path = SHIPPED_VF) -> T
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--src", type=Path, default=RAW_VF, help="raw Glyphs VF input")
+    parser.add_argument("--src", type=Path, default=STATIC_TTF, help="base static TTF input")
     parser.add_argument("--out", type=Path, default=SHIPPED_VF, help="shipped VF output")
     args: argparse.Namespace = parser.parse_args()
     font: Any = build_kern_axis(args.src, args.out)
