@@ -233,6 +233,29 @@ def winding_at(layer: GSLayer, px: float, py: float) -> int:
     return w
 
 
+def strip_axis_locations(F: Any) -> None:
+    """Delete Axis Location custom parameters from every master and instance.
+
+    When any object carries one, Glyphs derives the exported fvar axis range
+    from these parameters instead of the masters' axesValues — and Glyphs 4.1
+    materializes them with Location = 0, collapsing every axis to 0-0
+    ("Invalid axis range" on VF export). This font's design space IS its user
+    space, so the parameters are never legitimate here.
+    """
+    stripped = 0
+    for obj in list(F.masters) + list(F.instances):
+        params = obj.customParameters
+        for parameter in list(params.values()):
+            if parameter.name == "Axis Location":
+                try:
+                    del params[parameter.name]
+                    stripped += 1
+                except Exception as e:
+                    print("could not strip Axis Location on %s: %s" % (obj.name, e))
+    if stripped:
+        print("stripped %d Axis Location parameter(s)" % stripped)
+
+
 def run(font: Any = None, save_path: str | Path | None = None) -> Any:
     F = font
     if F is None:
@@ -460,6 +483,8 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
             "after fix: wall=%s hole=%s"
             % (winding_at(o_layer, 60.0, 350.0), winding_at(o_layer, 310.0, 350.0))
         )
+
+    strip_axis_locations(F)
 
     save_path = Path(save_path) if save_path else DEFAULT_SAVE
     try:
