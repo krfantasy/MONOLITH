@@ -543,9 +543,9 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
     save_path = Path(save_path) if save_path else DEFAULT_SAVE
     try:
         F.save(str(save_path))
-        print("saved %s" % save_path)
     except Exception as e:
-        print("save failed:", e)
+        raise RuntimeError("saving the rebuilt source to %s failed: %s" % (save_path, e)) from e
+    print("saved %s" % save_path)
     # Glyphs 4.1's serializer writes phantom Axis Location blocks INTO the
     # file at save time (the in-memory doc never has them) — clean the file
     # or the VF export and the source regression test both fail.
