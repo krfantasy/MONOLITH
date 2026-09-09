@@ -4,6 +4,7 @@ IMPORT ONLY INSIDE GLYPHS (Macro Panel / Glyphs script): GlyphsApp exists
 only in Glyphs' embedded Python. Run via scripts/macro_bootstrap.py.
 """
 
+import re
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
@@ -247,13 +248,23 @@ def export_variable_font(F: Any, out_path: str | Path) -> Path:
 
     Quirk: the exporter picks its own filename ("MONOLITH-VariableVF.ttf"
     on 4.1, the instance name on 3.5) and ignores the requested one, so
-    whatever new TTF lands in the directory gets renamed below.
+    whatever new TTF lands in the directory gets renamed below. 4.1 can
+    also return "Error in instance: Variable: Invalid axis range for
+    axis: Spacing" while writing a complete, correct VF — the file (not
+    the error string) decides success, with one retry when nothing lands.
     kern_axis.monolith finishes this file into the shipped variable font.
     """
     from GlyphsApp import INSTANCETYPEVARIABLE
 
     out_path = Path(out_path)
     out_dir = out_path.parent
+    # the exporter derives the fvar range from the on-disk doc — a save
+    # since the last strip leaves phantom Axis Location blocks in the file
+    # ("Invalid axis range for axis: Spacing")
+    doc_path = _doc_filepath(F)
+    if doc_path is not None and doc_path.exists():
+        strip_axis_locations_in_file(doc_path)
+    out_path.unlink(missing_ok=True)
     before = {p for p in out_dir.glob("*.ttf")}
     var_inst = next((i for i in F.instances if i.type == INSTANCETYPEVARIABLE), None)
     if var_inst is None:
@@ -262,29 +273,45 @@ def export_variable_font(F: Any, out_path: str | Path) -> Path:
         var_inst.setType_(INSTANCETYPEVARIABLE)
         var_inst.name = "Variable"
         F.instances.append(var_inst)
-    error = var_inst.generate("TTF", str(out_path))
-    if error:
-        raise RuntimeError("VF export failed: %s" % error)
-    produced = {p for p in out_dir.glob("*.ttf")} - before
-    if out_path in produced:
-        return out_path
-    if len(produced) == 1:
-        next(iter(produced)).rename(out_path)
-        return out_path
-    raise RuntimeError(
-        "VF export produced %d unexpected file(s) next to %s: %s"
-        % (len(produced), out_path, sorted(p.name for p in produced))
-    )
+
+    # 4.1 quirk: generate() can report "Error in instance: Variable:
+    # Invalid axis range for axis: Spacing" and still write a complete,
+    # correct VF (verified 2026-09-09) — and sometimes writes nothing at
+    # all. So the FILE, not the error string, decides: retry once when
+    # nothing landed, and only surface the error when no file appeared.
+    error = ""
+    for attempt in (1, 2):
+        error = var_inst.generate("TTF", str(out_path)) or ""
+        produced = {p for p in out_dir.glob("*.ttf")} - before
+        produced.discard(out_path)
+        if len(produced) > 1:
+            raise RuntimeError(
+                "VF export produced %d unexpected file(s) next to %s: %s"
+                % (len(produced), out_path, sorted(p.name for p in produced))
+            )
+        if len(produced) == 1:
+            produced.pop().rename(out_path)
+        if out_path.exists():
+            if error:
+                print("VF export warning: %s" % error)
+            return out_path
+        print("VF export attempt %d produced no file: %s" % (attempt, error))
+    raise RuntimeError("VF export failed: %s" % error)
 
 
 def strip_axis_locations(F: Any) -> None:
     """Delete Axis Location custom parameters from every master and instance.
 
-    When any object carries one, Glyphs derives the exported fvar axis range
-    from these parameters instead of the masters' axesValues — and Glyphs 4.1
-    materializes them with Location = 0, collapsing every axis to 0-0
-    ("Invalid axis range" on VF export). This font's design space IS its user
-    space, so the parameters are never legitimate here.
+    In-memory defense for docs loaded from older saves: when any object
+    carries one, Glyphs derives the exported fvar axis range from these
+    parameters instead of the masters' axesValues, collapsing every axis
+    to 0-0 ("Invalid axis range" on VF export).
+
+    NOTE: a plain Glyphs 4.1 save RE-ADDS these parameters to the FILE
+    (serializer-level; the in-memory doc never has them — verified
+    2026-09-09), so this cannot keep the saved source clean. run() calls
+    strip_axis_locations_in_file after every F.save for that, and
+    export_variable_font re-checks the file before exporting.
     """
     stripped = 0
     for obj in list(F.masters) + list(F.instances):
@@ -298,6 +325,45 @@ def strip_axis_locations(F: Any) -> None:
                     print("could not strip Axis Location on %s: %s" % (obj.name, e))
     if stripped:
         print("stripped %d Axis Location parameter(s)" % stripped)
+
+
+# The exact OpenStep-plist shape Glyphs 4.1's serializer writes for the
+# phantom Axis Location parameters (verified against a fresh save).
+_AXIS_LOCATION_ENTRY = re.compile(
+    r'\{\s*name = "Axis Location";\s*'
+    r"value = \(\s*\{\s*Axis = Spacing;\s*Location = 0;\s*\}\s*\);\s*\}\s*,?"
+)
+_EMPTY_PARAMETER_LIST = re.compile(r"customParameters = \(\s*\)\s*;?")
+# A list left ending in ",\n)" — raw newlines cannot occur inside quoted
+# plist strings, so this can only match structure, never string content.
+_DANGLING_LIST_COMMA = re.compile(r",(\s*\n\s*\))")
+
+
+def strip_axis_locations_in_file(path: str | Path) -> int:
+    """Remove phantom Axis Location parameter blocks from a saved .glyphs.
+
+    Glyphs 4.1's serializer writes an {Axis = Spacing; Location = 0}
+    parameter onto masters/instances at SAVE time (never visible in the
+    live document). Any such block collapses the exported fvar range to
+    0-0 — "Invalid axis range for axis: Spacing" — so the saved file must
+    be cleaned AFTER every save, before anything consumes it (VF export,
+    the repo). Format-preserving text surgery on the OpenStep plist.
+    """
+    path = Path(path)
+    text = path.read_text(encoding="utf-8")
+    text, count = _AXIS_LOCATION_ENTRY.subn("", text)
+    if count:
+        text = _EMPTY_PARAMETER_LIST.sub("", text)
+        text = _DANGLING_LIST_COMMA.sub(r"\1", text)
+        path.write_text(text, encoding="utf-8")
+        print("stripped %d Axis Location block(s) from %s" % (count, path.name))
+    return count
+
+
+def _doc_filepath(F: Any) -> Path | None:
+    raw = getattr(F, "filepath", None)
+    text = str(raw() if callable(raw) else raw or "")
+    return Path(text) if text else None
 
 
 def run(font: Any = None, save_path: str | Path | None = None) -> Any:
@@ -536,5 +602,9 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
         print("saved %s" % save_path)
     except Exception as e:
         print("save failed:", e)
+    # Glyphs 4.1's serializer writes phantom Axis Location blocks INTO the
+    # file at save time (the in-memory doc never has them) — clean the file
+    # or the VF export and the source regression test both fail.
+    strip_axis_locations_in_file(save_path)
     print("DONE")
     return F
