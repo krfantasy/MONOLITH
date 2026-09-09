@@ -233,6 +233,50 @@ def winding_at(layer: GSLayer, px: float, py: float) -> int:
     return w
 
 
+def export_variable_font(F: Any, out_path: str | Path) -> Path:
+    """Export the raw variable font (fvar SPAC + gvar, no KERN axis yet).
+
+    Goes through a VARIABLE-type instance's generate() — the same exporter
+    File > Export drives, unblocked again since the Axis Location sweep
+    (strip_axis_locations). The Axis Location params must be gone BEFORE
+    this runs or Glyphs rejects the export with "Invalid axis range" —
+    run() strips them, and a doc saved by anything else should be
+    re-stripped first. Note Glyphs 4.1 compiles the native kerning into
+    the raw VF's GPOS; kern_axis replaces GPOS, keeping the default cut
+    kern-free.
+
+    Quirk: the exporter picks its own filename ("MONOLITH-VariableVF.ttf"
+    on 4.1, the instance name on 3.5) and ignores the requested one, so
+    whatever new TTF lands in the directory gets renamed below.
+    kern_axis.monolith finishes this file into the shipped variable font.
+    """
+    from GlyphsApp import INSTANCETYPEVARIABLE
+
+    out_path = Path(out_path)
+    out_dir = out_path.parent
+    before = {p for p in out_dir.glob("*.ttf")}
+    var_inst = next((i for i in F.instances if i.type == INSTANCETYPEVARIABLE), None)
+    if var_inst is None:
+        var_inst = GSInstance()
+        # the Python property is getter-only in 4.x; the ObjC setter works
+        var_inst.setType_(INSTANCETYPEVARIABLE)
+        var_inst.name = "Variable"
+        F.instances.append(var_inst)
+    error = var_inst.generate("TTF", str(out_path))
+    if error:
+        raise RuntimeError("VF export failed: %s" % error)
+    produced = {p for p in out_dir.glob("*.ttf")} - before
+    if out_path in produced:
+        return out_path
+    if len(produced) == 1:
+        next(iter(produced)).rename(out_path)
+        return out_path
+    raise RuntimeError(
+        "VF export produced %d unexpected file(s) next to %s: %s"
+        % (len(produced), out_path, sorted(p.name for p in produced))
+    )
+
+
 def strip_axis_locations(F: Any) -> None:
     """Delete Axis Location custom parameters from every master and instance.
 

@@ -23,6 +23,7 @@ if not _doc_path:
 
 REPO = Path(_doc_path).resolve().parent
 sys.path.insert(0, str(REPO / "src"))
+print("checkout: %s" % REPO)
 
 import importlib  # noqa: E402
 
@@ -31,6 +32,15 @@ import monolith.build as build  # noqa: E402
 importlib.reload(build)  # the Macro Panel caches modules between runs
 
 f = build.run()
+
+# --- variable font -----------------------------------------------------------
+# Exported by Glyphs itself: a VARIABLE-type instance's generate() drives the
+# same exporter as File > Export. It needs the Axis Location params gone
+# (run() strips them) and finishes BEFORE the statics so a same-named output
+# could never clobber one. The result is the raw VF — fvar SPAC + gvar, no
+# KERN axis yet; monolith.kern_axis adds that outside Glyphs.
+vf_path = build.export_variable_font(f, REPO / "fonts" / "MONOLITH-Variable-raw.ttf")
+print("raw VF exported -> %s" % vf_path.name)
 
 # --- statics -----------------------------------------------------------------
 # ExtraBold carries the "Remove Features: kern" custom parameter, so the
@@ -42,12 +52,7 @@ static.generate("OTF", str(REPO / "fonts" / "MONOLITH-ExtraBold.otf"))
 print("statics exported (unkerned)")
 
 # --- final step (outside Glyphs) --------------------------------------------
-# Do NOT export a variable font here: Glyphs 4.1's scripted VF export
-# crashes the app (both the hand-wired GSExportInstanceOperation and a
-# VARIABLE-type instance's generate()). The variable font is assembled
-# outside with fontTools — SPAC is metric-only, so the loose master is
-# just the static with +130 advances.
 print("NOW RUN: uv run python -m monolith.kern_axis")
-print("  (builds the variable font from the static with fontTools and adds")
-print("   the KERN 0-100 axis + HVAR -> fonts/MONOLITH-Variable.ttf)")
+print("  (finishes the raw VF: adds the KERN 0-100 axis + HVAR and renames")
+print("   the default instance -> fonts/MONOLITH-Variable.ttf)")
 print("REGEN + EXPORT DONE")

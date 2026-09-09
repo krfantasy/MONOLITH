@@ -1,10 +1,9 @@
 """The shipped variable font: SPAC + KERN axes, advances, outline invariance.
 
-The variable font is assembled with fontTools varLib from the exported
-static (SPAC is metric-only: the loose master is the same outlines with
-+130 advances) and finished by monolith.kern_axis, which adds the KERN
-axis with a GPOS VariationStore built from the same KERN_PAIRS the
-Kerning window shows.
+Glyphs exports the base VF itself (raw: fvar SPAC + gvar via a
+VARIABLE-type instance, tracked as MONOLITH-Variable-raw.ttf) and
+monolith.kern_axis finishes it, adding the KERN axis with a GPOS
+VariationStore built from the same KERN_PAIRS the Kerning window shows.
 """
 
 from pathlib import Path
@@ -19,10 +18,12 @@ from monolith.kerning import KERN_PAIRS
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FONT = REPO_ROOT / "fonts" / "MONOLITH-ExtraBold.ttf"
+RAW_VF = REPO_ROOT / "fonts" / "MONOLITH-Variable-raw.ttf"
 VF = REPO_ROOT / "fonts" / "MONOLITH-Variable.ttf"
 
 pytestmark = pytest.mark.skipif(
-    not (FONT.exists() and VF.exists()), reason="fonts not exported from Glyphs yet"
+    not (FONT.exists() and RAW_VF.exists() and VF.exists()),
+    reason="fonts not exported from Glyphs yet",
 )
 
 
@@ -88,13 +89,12 @@ def test_hvar_carries_spac_advances(vf: TTFont) -> None:
 
 
 def test_kern_axis_build_is_deterministic(tmp_path: Path) -> None:
-    """Two builds from the same static must land on identical tables, one
+    """Two builds from the same raw VF must land on identical tables, one
     "Kern" name record and exactly two axes."""
     from monolith import kern_axis
 
-    static = REPO_ROOT / "fonts" / "MONOLITH-ExtraBold.ttf"
-    once = kern_axis.build_kern_axis(static, tmp_path / "once.ttf")
-    twice = kern_axis.build_kern_axis(static, tmp_path / "twice.ttf")
+    once = kern_axis.build_kern_axis(RAW_VF, tmp_path / "once.ttf")
+    twice = kern_axis.build_kern_axis(RAW_VF, tmp_path / "twice.ttf")
 
     for font in (once, twice):
         assert [ax.axisTag for ax in font["fvar"].axes] == ["SPAC", "KERN"]
@@ -168,8 +168,9 @@ def test_spaced_alternates_get_the_same_delta(vf: TTFont) -> None:
 def test_outlines_identical_at_every_position(vf: TTFont) -> None:
     # the SPAC axis must be metric-only: outlines at SPAC 130 == outlines at
     # the default. KERN is GPOS-only, so gvar never moves an outline for it.
-    # (The VF is built from the statics, so outlines are the overlap-removed
-    # static contours — identical between masters by construction.)
+    # (The raw VF comes from Glyphs' two SPAC masters, whose outlines are
+    # mirrored copies — gvar's outline deltas are all zero by construction.
+    # Unlike the statics, the VF keeps overlapping contours; irrelevant here.)
     at_max = variable.instance_at_spac(VF, variable.SPAC_MAX)
     for gname in ("A", "V", "one", "zero", "a"):
         ref = _contours(vf, gname)

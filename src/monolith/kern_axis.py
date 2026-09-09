@@ -1,12 +1,11 @@
 """Finish the MONOLITH variable font: KERN axis (0-100, default 0), the
 Tight instance name, and a measured HVAR.
 
-Glyphs 4.1's scripted variable-font export crashes the app (both the
-hand-wired GSExportInstanceOperation and the public VARIABLE-instance
-generate()), so the variable font is assembled downstream with fontTools
-varLib instead — SPAC is metric-only, so the loose master is just the
-exported ExtraBold static with +130 on every advance (monolith.variable
-builds that base font). This module then finishes it:
+Glyphs exports the base variable font itself (the Scripting-Window
+bootstrap drives a VARIABLE-type instance's generate() and writes
+fonts/MONOLITH-Variable-raw.ttf — fvar SPAC + gvar, but no GPOS: the VF
+path drops the doc's native kerning). This module finishes it, and is
+the one sanctioned fontTools step in the pipeline:
 
 - fvar gains a KERN axis: min 0, DEFAULT 0 (kern off unless asked), max 100.
 - GDEF gains an ItemVariationStore with one region (KERN peak 100) and one
@@ -15,8 +14,8 @@ builds that base font). This module then finishes it:
 - A GPOS `kern` feature (default-on in every shaper) holds PairPos records
   whose XAdvance is 0 plus a VariationIndex device into that store, so a
   KERN coordinate of t applies each kern scaled by t/100.
-- HVAR is rebuilt from measured advances (one delta per glyph; varLib's
-  own HVAR is equivalent, this one is pinned by test).
+- HVAR is rebuilt from measured advances (one delta per glyph; the raw
+  VF's gvar phantom points are equivalent, this one is pinned by test).
 - The default named instance is renamed to "Tight" (Tight/Touching/Spaced).
 
 Run after the Glyphs export: `python -m monolith.kern_axis`.
@@ -36,7 +35,7 @@ from monolith import variable
 from monolith.kerning import KERN_PAIRS
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-STATIC_TTF = REPO_ROOT / "fonts" / "MONOLITH-ExtraBold.ttf"
+RAW_VF = REPO_ROOT / "fonts" / "MONOLITH-Variable-raw.ttf"
 SHIPPED_VF = REPO_ROOT / "fonts" / "MONOLITH-Variable.ttf"
 
 KERN_MIN = 0
@@ -294,9 +293,9 @@ def _attach_store_to_gdef(font: TTFont, store: ot.ItemVariationStore) -> None:
     print("GDEF: ItemVariationStore attached (%d delta items)" % len(KERN_PAIRS))
 
 
-def build_kern_axis(src: str | Path = STATIC_TTF, out: str | Path = SHIPPED_VF) -> TTFont:
-    """Static TTF -> finished variable font (SPAC + KERN axes). Saved to out."""
-    font = variable.build_variable_font(src)
+def build_kern_axis(src: str | Path = RAW_VF, out: str | Path = SHIPPED_VF) -> TTFont:
+    """Raw Glyphs VF -> finished variable font (SPAC + KERN axes). Saved to out."""
+    font = TTFont(str(src))
     # touch gvar BEFORE the fvar edit: the header says axisCount=1 (SPAC),
     # and decompiling it after fvar grows a second axis trips fontTools'
     # cross-check. Decompiled early, it recompiles at save time with both
@@ -311,7 +310,10 @@ def build_kern_axis(src: str | Path = STATIC_TTF, out: str | Path = SHIPPED_VF) 
     _attach_store_to_gdef(font, store)
     pair_pos = _build_pair_pos(font)
     _add_gpos(font, pair_pos)
-    # the metric-only construction makes every delta SPAC_MAX by definition;
+    # every advance moves +SPAC_MAX along SPAC by construction (the Spaced
+    # master is the tight one plus SPAC_MAX). HVAR — not the raw VF's gvar
+    # phantoms — defines advances once present, which also pins .notdef
+    # (Glyphs auto-boxes it and its phantom delta can disagree);
     # the instancer tests pin advances end-to-end at 0/30/130 for all glyphs
     _add_hvar(font, [variable.SPAC_MAX] * len(font.getGlyphOrder()))
     font.save(str(out))
@@ -321,7 +323,7 @@ def build_kern_axis(src: str | Path = STATIC_TTF, out: str | Path = SHIPPED_VF) 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--src", type=Path, default=STATIC_TTF, help="base static TTF input")
+    parser.add_argument("--src", type=Path, default=RAW_VF, help="raw Glyphs VF input")
     parser.add_argument("--out", type=Path, default=SHIPPED_VF, help="shipped VF output")
     args: argparse.Namespace = parser.parse_args()
     font: Any = build_kern_axis(args.src, args.out)

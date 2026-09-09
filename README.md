@@ -82,7 +82,7 @@ the Glyphs-side builder turns that data into the `.glyphs` file.
 
 **Regenerate the fonts** (requires [Glyphs](https://glyphsapp.com) — Glyphs
 generates everything: the source, the statics, and the raw variable font.
-The one fontTools step is finishing the variable font, because Glyphs 3.5
+The one fontTools step is finishing the variable font, because Glyphs
 can't export kerning as an axis; fontTools is otherwise downstream-only,
 in tests and specimens):
 
@@ -93,12 +93,12 @@ in tests and specimens):
    `MONOLITH.glyphs` is rewritten in place — including the two `SPAC` masters
    and the native kerning pairs — and the statics are exported into `fonts/`
    (unkerned: the ExtraBold instance drops the `kern` feature).
-3. Build the variable font outside Glyphs — Glyphs 4.1's scripted VF export
-   crashes the app, and `SPAC` is metric-only anyway, so
-   [`src/monolith/kern_axis.py`](src/monolith/kern_axis.py) assembles it with
-   fontTools varLib from the exported static (the loose master is the same
-   outlines with +130 advances), then adds the `KERN` axis (GPOS
-   VariationStore) and an `HVAR`:
+3. Finish the variable font outside Glyphs. The bootstrap already exported
+   the raw VF (`fonts/MONOLITH-Variable-raw.ttf` — fvar SPAC + gvar, via a
+   `VARIABLE`-type instance, the same exporter File ▸ Export drives), but
+   Glyphs drops the doc's kerning on the VF path, so
+   [`src/monolith/kern_axis.py`](src/monolith/kern_axis.py) adds the `KERN`
+   axis (GPOS VariationStore), an `HVAR`, and the `Tight` instance name:
 
    ```sh
    uv run python -m monolith.kern_axis   # -> fonts/MONOLITH-Variable.ttf
