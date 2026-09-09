@@ -14,8 +14,13 @@ the one sanctioned fontTools step in the pipeline:
 - A GPOS `kern` feature (default-on in every shaper) holds PairPos records
   whose XAdvance is 0 plus a VariationIndex device into that store, so a
   KERN coordinate of t applies each kern scaled by t/100.
-- HVAR is rebuilt from measured advances (one delta per glyph; the raw
-  VF's gvar phantom points are equivalent, this one is pinned by test).
+- The outlines are unioned (fontTools removeOverlaps) and gvar is rebuilt:
+  the raw VF keeps overlapping contours in boundary-coincident
+  decompositions that Apple rasterizers render with hairline box
+  outlines; the rebuilt gvar carries zero outline deltas plus the SPAC
+  advance deltas on the phantom points (fontTools' glyf instancer reads
+  advances from there).
+- HVAR carries the SPAC advance deltas (one delta per glyph, +130).
 - The default named instance is renamed to "Tight" (Tight/Touching/Spaced).
 
 Run after the Glyphs export: `python -m monolith.kern_axis`.
@@ -28,6 +33,7 @@ from pathlib import Path
 from typing import Any
 
 from fontTools.ttLib import TTFont, newTable
+from fontTools.ttLib.removeOverlaps import removeOverlaps
 from fontTools.ttLib.tables import otTables as ot
 from fontTools.varLib.builder import buildVarData, buildVarRegionList, buildVarStore
 
@@ -293,14 +299,49 @@ def _attach_store_to_gdef(font: TTFont, store: ot.ItemVariationStore) -> None:
     print("GDEF: ItemVariationStore attached (%d delta items)" % len(KERN_PAIRS))
 
 
+def _rebuild_gvar(font: TTFont, spac_max: int) -> None:
+    """Fresh gvar for the unioned outlines: zero outline deltas (the SPAC
+    axis is metric-only) plus a +spac_max delta on each glyph's advance
+    phantom point. fontTools' instancer only applies HVAR to hmtx for
+    CFF2 fonts — for glyf fonts it uses gvar phantom points, so a glyf
+    VF without gvar would instance to wrong advances ("faulty font" per
+    fontTools). HVAR below mirrors the same deltas for shapers."""
+    from fontTools.ttLib.tables._g_v_a_r import TupleVariation
+
+    axes = {"SPAC": (0.0, 1.0, 1.0), "KERN": (0.0, 0.0, 0.0)}
+    variations = {}
+    for gname in font.getGlyphOrder():
+        glyph = font["glyf"][gname]
+        if glyph.isComposite():
+            count = len(glyph.components)
+        elif glyph.numberOfContours > 0:
+            count = len(glyph.coordinates)
+        else:
+            count = 0
+        # per-point zeros, then the four phantoms: lsb, ADVANCE, tsb, vadv
+        deltas = [(0, 0)] * count + [(0, 0), (spac_max, 0), (0, 0), (0, 0)]
+        variations[gname] = [TupleVariation(dict(axes), deltas)]
+    gvar = newTable("gvar")
+    gvar.version = 1
+    gvar.reserved = 0
+    gvar.axisCount = len(font["fvar"].axes)
+    gvar.variations = variations
+    font["gvar"] = gvar
+    print("gvar: rebuilt for unioned outlines (phantom advance +%d)" % spac_max)
+
+
 def build_kern_axis(src: str | Path = RAW_VF, out: str | Path = SHIPPED_VF) -> TTFont:
     """Raw Glyphs VF -> finished variable font (SPAC + KERN axes). Saved to out."""
     font = TTFont(str(src))
-    # touch gvar BEFORE the fvar edit: the header says axisCount=1 (SPAC),
-    # and decompiling it after fvar grows a second axis trips fontTools'
-    # cross-check. Decompiled early, it recompiles at save time with both
-    # axes (tuples get a (0,0,0) KERN entry — outlines ignore kerning).
-    _ = font["gvar"]
+    # Glyphs 4.1's VF export keeps overlapping contours — and decomposes some
+    # glyphs (E) into the FULL glyph box minus boundary-coincident notch
+    # holes, whose edges lie on the box outline. Apple rasterizers (CoreText:
+    # Safari, Font Book, Affinity) render those shared edges as hairline
+    # box outlines. Union the overlaps so the shipped outlines match the
+    # statics, and drop the raw gvar: the union changes point counts, so
+    # _rebuild_gvar (after the KERN axis exists) replaces it.
+    del font["gvar"]
+    removeOverlaps(font)
     kern_name_id = _add_kern_axis_to_fvar(font)
     _rename_default_instance(font)
     stat_table = font.get("STAT")
@@ -316,6 +357,7 @@ def build_kern_axis(src: str | Path = RAW_VF, out: str | Path = SHIPPED_VF) -> T
     # (Glyphs auto-boxes it and its phantom delta can disagree);
     # the instancer tests pin advances end-to-end at 0/30/130 for all glyphs
     _add_hvar(font, [variable.SPAC_MAX] * len(font.getGlyphOrder()))
+    _rebuild_gvar(font, variable.SPAC_MAX)
     font.save(str(out))
     print("saved", out)
     return font

@@ -167,11 +167,47 @@ def test_spaced_alternates_get_the_same_delta(vf: TTFont) -> None:
 
 def test_outlines_identical_at_every_position(vf: TTFont) -> None:
     # the SPAC axis must be metric-only: outlines at SPAC 130 == outlines at
-    # the default. KERN is GPOS-only, so gvar never moves an outline for it.
-    # (The raw VF comes from Glyphs' two SPAC masters, whose outlines are
-    # mirrored copies — gvar's outline deltas are all zero by construction.
-    # Unlike the statics, the VF keeps overlapping contours; irrelevant here.)
+    # the default. KERN is GPOS-only, so no variation table moves an outline.
     at_max = variable.instance_at_spac(VF, variable.SPAC_MAX)
     for gname in ("A", "V", "one", "zero", "a"):
         ref = _contours(vf, gname)
         assert _contours(at_max, gname) == ref, gname
+
+
+def test_shipped_outlines_are_unioned_like_the_static(vf: TTFont) -> None:
+    """The shipped VF's outlines must be overlap-free unions matching the
+    statics. Glyphs 4.1's raw VF export decomposes glyphs (E) into the full
+    glyph box minus boundary-coincident notch holes — valid TrueType, but
+    Apple rasterizers (CoreText: Safari, Font Book, Affinity) render the
+    shared edges as hairline box outlines. kern_axis unions the contours;
+    this pins that (regions compared as sorted per-contour area + bounds,
+    robust to vertex order and curve segmentation)."""
+
+    def regions(font: TTFont, gname: str) -> tuple:
+        from fontTools.pens.areaPen import AreaPen
+        from fontTools.pens.boundsPen import BoundsPen
+
+        glyph_set = font.getGlyphSet()
+        rec = RecordingPen()
+        glyph_set[gname].draw(rec)
+        out, contour = [], None
+        for op, args in rec.value:
+            if op == "moveTo":
+                contour = [args[0]]
+            elif op in ("lineTo", "qCurveTo", "curveTo") and contour is not None:
+                contour.extend(pt for pt in args if pt is not None)
+            elif op in ("closePath", "endPath") and contour:
+                area_pen, bounds_pen = AreaPen(), BoundsPen(glyph_set)
+                area_pen.moveTo(contour[0])
+                bounds_pen.moveTo(contour[0])
+                for pt in contour[1:]:
+                    area_pen.lineTo(pt)
+                    bounds_pen.lineTo(pt)
+                area_pen.closePath()
+                out.append((round(area_pen.value, 1), bounds_pen.bounds))
+                contour = None
+        return tuple(sorted(out))
+
+    static = TTFont(str(FONT))
+    for gname in ("A", "E", "F", "H", "O", "R", "one", "zero", "a", "zero.spaced"):
+        assert regions(vf, gname) == regions(static, gname), gname
