@@ -92,14 +92,33 @@ downstream with fontTools: Glyphs 4.1's VF export rejects this document
 ("Invalid axis range"), and SPAC is metric-only anyway, so varLib builds
 the base VF from the exported static and kern_axis finishes it):
 
-1. Open Glyphs, then Window ▸ Scripting Window (in Glyphs 3: Macro Panel, ⌥⌘M).
-2. Paste the contents of [`scripts/macro_bootstrap.py`](scripts/macro_bootstrap.py)
-   with `MONOLITH.glyphs` open as the frontmost document (the script derives
-   the checkout from it — close other fonts first) and press **Run**.
-   `MONOLITH.glyphs` is rewritten in place — including the two `SPAC` masters
-   and the native kerning pairs — and the statics are exported into `fonts/`
+1. Rebuild the source and export the statics headlessly (requires
+   [Glyphs](https://glyphsapp.com) 4.1 on macOS + the `glyphs` uv group):
+
+       uv sync --group glyphs
+       uv run --group glyphs -- glyphs run --app 4 scripts/rebuild_cli.py --input MONOLITH.glyphs
+       uv run --group glyphs -- glyphs run --app 4 -c '
+st = next(i for i in Glyphs.font.instances if i.name == "ExtraBold")
+st.generate("TTF", "fonts/MONOLITH-ExtraBold.ttf")
+st.generate("OTF", "fonts/MONOLITH-ExtraBold.otf")
+print("statics exported (unkerned)")
+' --input MONOLITH.glyphs
+
+   The statics export targets the ExtraBold instance only (same
+   `instance.generate` calls the GUI macro uses) — a plain
+   `glyphs export` would also emit Touching/Spaced/Variable cuts that
+   collide with the fontTools variable chain below. If `glyphs run`
+   complains about a missing Python framework, add
+   `--python <path-to-a-Python-framework-with-PyObjC>` (or set the
+   framework once in Glyphs Settings).
+
+   `MONOLITH.glyphs` is rewritten in place — including the two `SPAC`
+   masters and the native kerning pairs — and the statics land in `fonts/`
    (unkerned: the ExtraBold instance drops the `kern` feature).
-3. Assemble and finish the variable font:
+   Fallback without `glyphs-cli`: open `MONOLITH.glyphs` in Glyphs, paste
+   [`scripts/macro_bootstrap.py`](scripts/macro_bootstrap.py) into
+   Window ▸ Scripting Window and press **Run**.
+2. Assemble and finish the variable font:
 
    ```sh
    uv run python -m monolith.variable   # base VF from the static (varLib)
