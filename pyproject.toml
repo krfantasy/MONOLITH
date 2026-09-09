@@ -19,6 +19,9 @@ dev = [
     "pytest",
     "ruff",
 ]
+glyphs = [
+    "glyphs-cli>=0.2 ; sys_platform == 'darwin'",
+]
 
 [build-system]
 requires = ["hatchling"]

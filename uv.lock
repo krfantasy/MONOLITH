@@ -61,6 +61,15 @@ wheels = [
 ]
 
 [[package]]
+name = "glyphs-cli"
+version = "0.6.2"
+source = { registry = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/" }
+wheels = [
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/1f/63/19ebdbe11fed022ff96df547550618a3ef3b9a90b208d3be8497bac7cdd7/glyphs_cli-0.6.2-py3-none-macosx_12_0_arm64.whl", hash = "sha256:2097f08f6c5c3658765a61e79e20a37c83314567caab0875f47bfc691b8d2c54", size = 2797246, upload-time = "2026-08-25T08:47:54.143Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/81/c6/47e075a3f6ac2ea651a4e168c3f6f13c7c155b115b89d4499d7305fafb49/glyphs_cli-0.6.2-py3-none-macosx_12_0_x86_64.whl", hash = "sha256:091b1c59e16164ebac48daa2b32825398fcb5c9c714eb122c774372a41dc9c57", size = 2872759, upload-time = "2026-08-25T08:47:58.075Z" },
+]
+
+[[package]]
 name = "iniconfig"
 version = "2.3.0"
 source = { registry = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/" }
@@ -85,6 +94,9 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
 ]
+glyphs = [
+    { name = "glyphs-cli", marker = "sys_platform == 'darwin'" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -99,6 +111,7 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
 ]
+glyphs = [{ name = "glyphs-cli", marker = "sys_platform == 'darwin'", specifier = ">=0.2" }]
 
 [[package]]
 name = "packaging"
