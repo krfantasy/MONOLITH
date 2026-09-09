@@ -234,71 +234,6 @@ def winding_at(layer: GSLayer, px: float, py: float) -> int:
     return w
 
 
-def export_variable_font(F: Any, out_path: str | Path) -> Path:
-    """Export the raw variable font (fvar SPAC + gvar, no KERN axis yet).
-
-    Goes through a VARIABLE-type instance's generate() — the same exporter
-    File > Export drives, unblocked again since the Axis Location sweep
-    (strip_axis_locations). The Axis Location params must be gone BEFORE
-    this runs or Glyphs rejects the export with "Invalid axis range" —
-    run() strips them, and a doc saved by anything else should be
-    re-stripped first. Note Glyphs 4.1 compiles the native kerning into
-    the raw VF's GPOS; kern_axis replaces GPOS, keeping the default cut
-    kern-free.
-
-    Quirk: the exporter picks its own filename ("MONOLITH-VariableVF.ttf"
-    on 4.1, the instance name on 3.5) and ignores the requested one, so
-    whatever new TTF lands in the directory gets renamed below. 4.1 can
-    also return "Error in instance: Variable: Invalid axis range for
-    axis: Spacing" while writing a complete, correct VF — the file (not
-    the error string) decides success, with one retry when nothing lands.
-    kern_axis.monolith finishes this file into the shipped variable font.
-    """
-    from GlyphsApp import INSTANCETYPEVARIABLE
-
-    out_path = Path(out_path)
-    out_dir = out_path.parent
-    # the exporter derives the fvar range from the on-disk doc — a save
-    # since the last strip leaves phantom Axis Location blocks in the file
-    # ("Invalid axis range for axis: Spacing")
-    doc_path = _doc_filepath(F)
-    if doc_path is not None and doc_path.exists():
-        strip_axis_locations_in_file(doc_path)
-    out_path.unlink(missing_ok=True)
-    before = {p for p in out_dir.glob("*.ttf")}
-    var_inst = next((i for i in F.instances if i.type == INSTANCETYPEVARIABLE), None)
-    if var_inst is None:
-        var_inst = GSInstance()
-        # the Python property is getter-only in 4.x; the ObjC setter works
-        var_inst.setType_(INSTANCETYPEVARIABLE)
-        var_inst.name = "Variable"
-        F.instances.append(var_inst)
-
-    # 4.1 quirk: generate() can report "Error in instance: Variable:
-    # Invalid axis range for axis: Spacing" and still write a complete,
-    # correct VF (verified 2026-09-09) — and sometimes writes nothing at
-    # all. So the FILE, not the error string, decides: retry once when
-    # nothing landed, and only surface the error when no file appeared.
-    error = ""
-    for attempt in (1, 2):
-        error = var_inst.generate("TTF", str(out_path)) or ""
-        produced = {p for p in out_dir.glob("*.ttf")} - before
-        produced.discard(out_path)
-        if len(produced) > 1:
-            raise RuntimeError(
-                "VF export produced %d unexpected file(s) next to %s: %s"
-                % (len(produced), out_path, sorted(p.name for p in produced))
-            )
-        if len(produced) == 1:
-            produced.pop().rename(out_path)
-        if out_path.exists():
-            if error:
-                print("VF export warning: %s" % error)
-            return out_path
-        print("VF export attempt %d produced no file: %s" % (attempt, error))
-    raise RuntimeError("VF export failed: %s" % error)
-
-
 def strip_axis_locations(F: Any) -> None:
     """Delete Axis Location custom parameters from every master and instance.
 
@@ -310,8 +245,7 @@ def strip_axis_locations(F: Any) -> None:
     NOTE: a plain Glyphs 4.1 save RE-ADDS these parameters to the FILE
     (serializer-level; the in-memory doc never has them — verified
     2026-09-09), so this cannot keep the saved source clean. run() calls
-    strip_axis_locations_in_file after every F.save for that, and
-    export_variable_font re-checks the file before exporting.
+    strip_axis_locations_in_file after every F.save for that.
     """
     stripped = 0
     for obj in list(F.masters) + list(F.instances):

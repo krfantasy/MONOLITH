@@ -1,11 +1,9 @@
 """Finish the MONOLITH variable font: KERN axis (0-100, default 0), the
 Tight instance name, and a measured HVAR.
 
-Glyphs exports the base variable font itself (the Scripting-Window
-bootstrap drives a VARIABLE-type instance's generate() and writes
-fonts/MONOLITH-Variable-raw.ttf — fvar SPAC + gvar, but no GPOS: the VF
-path drops the doc's native kerning). This module finishes it, and is
-the one sanctioned fontTools step in the pipeline:
+monolith.variable assembles the base variable font from the exported
+static with fontTools varLib — metric-only SPAC: fvar + gvar, no GPOS —
+and writes fonts/MONOLITH-Variable-raw.ttf. This module finishes it:
 
 - fvar gains a KERN axis: min 0, DEFAULT 0 (kern off unless asked), max 100.
 - GDEF gains an ItemVariationStore with one region (KERN peak 100) and one
@@ -15,15 +13,15 @@ the one sanctioned fontTools step in the pipeline:
   whose XAdvance is 0 plus a VariationIndex device into that store, so a
   KERN coordinate of t applies each kern scaled by t/100.
 - The outlines are unioned (fontTools removeOverlaps) and gvar is rebuilt:
-  the raw VF keeps overlapping contours in boundary-coincident
-  decompositions that Apple rasterizers render with hairline box
-  outlines; the rebuilt gvar carries zero outline deltas plus the SPAC
-  advance deltas on the phantom points (fontTools' glyf instancer reads
-  advances from there).
+  a decomposed overlap (one Glyphs-exporter pathology for E: the full
+  glyph box minus boundary-coincident notch holes) renders with hairline
+  box outlines in Apple rasterizers; the rebuilt gvar carries zero outline
+  deltas plus the SPAC advance deltas on the phantom points (fontTools'
+  glyf instancer reads advances from there).
 - HVAR carries the SPAC advance deltas (one delta per glyph, +130).
 - The default named instance is renamed to "Tight" (Tight/Touching/Spaced).
 
-Run after the Glyphs export: `python -m monolith.kern_axis`.
+Run after monolith.variable: `python -m monolith.kern_axis`.
 """
 
 from __future__ import annotations
@@ -96,10 +94,11 @@ def _add_kern_axis_to_fvar(font: TTFont) -> int:
 def _rename_default_instance(font: TTFont) -> None:
     """Name the VF's default named instance "Tight".
 
-    The Glyphs VF export names it after the static instance ("ExtraBold"),
-    but the shipped instance set is Tight(0)/Touching(30)/Spaced(130) and
-    the static files keep their own name — so the rename lives here, in
-    the VF-finishing step. Idempotent: a re-run finds the name in place.
+    A base VF assembled from the static carries the static instance's name
+    ("ExtraBold" in the Glyphs-exported raw VF), but the shipped instance
+    set is Tight(0)/Touching(30)/Spaced(130) and the static files keep
+    their own name — so the rename lives here, in the VF-finishing step.
+    Idempotent: a re-run finds the name in place.
     """
     for inst in font["fvar"].instances:
         if inst.coordinates.get("SPAC") == 0:
@@ -331,15 +330,16 @@ def _rebuild_gvar(font: TTFont, spac_max: int) -> None:
 
 
 def build_kern_axis(src: str | Path = RAW_VF, out: str | Path = SHIPPED_VF) -> TTFont:
-    """Raw Glyphs VF -> finished variable font (SPAC + KERN axes). Saved to out."""
+    """Raw varLib VF -> finished variable font (SPAC + KERN axes). Saved to out."""
     font = TTFont(str(src))
-    # Glyphs 4.1's VF export keeps overlapping contours — and decomposes some
-    # glyphs (E) into the FULL glyph box minus boundary-coincident notch
-    # holes, whose edges lie on the box outline. Apple rasterizers (CoreText:
-    # Safari, Font Book, Affinity) render those shared edges as hairline
-    # box outlines. Union the overlaps so the shipped outlines match the
-    # statics, and drop the raw gvar: the union changes point counts, so
-    # _rebuild_gvar (after the KERN axis exists) replaces it.
+    # Union overlapping contours before shipping: a decomposed overlap (the
+    # Glyphs VF exporter once wrote E as the full glyph box minus
+    # boundary-coincident notch holes) renders with hairline box outlines in
+    # Apple rasterizers (CoreText: Safari, Font Book, Affinity). The varLib
+    # path starts from the static's outlines, which are already unioned, so
+    # this is a no-op safeguard there. Drop the raw gvar either way: the
+    # union changes point counts, so _rebuild_gvar (after the KERN axis
+    # exists) replaces it.
     del font["gvar"]
     removeOverlaps(font)
     kern_name_id = _add_kern_axis_to_fvar(font)
