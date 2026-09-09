@@ -92,36 +92,31 @@ downstream with fontTools: Glyphs 4.1's VF export rejects this document
 ("Invalid axis range"), and SPAC is metric-only anyway, so varLib builds
 the base VF from the exported static and kern_axis finishes it):
 
-1. Rebuild the source and export the statics headlessly (requires
+1. Run the full pipeline with one command (requires
    [Glyphs](https://glyphsapp.com) 4.1 on macOS + the `glyphs` uv group).
    If Glyphs has no Python framework configured (Settings → Addons →
-   Python), export its path once per terminal — the wrapper picks it up
-   and also silences Glyphs' harmless headless telemetry spam:
+   Python), export its path once per terminal:
 
    ```sh
-   uv sync --group glyphs
    export GLYPHS_PYTHON_FW=/opt/homebrew/Frameworks/Python.framework/Versions/3.14/Python
-   scripts/glyphs-run.sh run --app 4 scripts/rebuild_cli.py --input MONOLITH.glyphs
-   scripts/glyphs-run.sh run --app 4 -c '
-st = next(i for i in Glyphs.font.instances if i.name == "ExtraBold")
-st.generate("TTF", "fonts/MONOLITH-ExtraBold.ttf")
-st.generate("OTF", "fonts/MONOLITH-ExtraBold.otf")
-print("statics exported (unkerned)")
-' --input MONOLITH.glyphs
+   scripts/regen.sh
    ```
 
-   `MONOLITH.glyphs` is rewritten in place — including the two `SPAC`
-   masters and the native kerning pairs — and the statics land in `fonts/`
-   (unkerned: the ExtraBold instance drops the `kern` feature).
+   That runs, in order: tooling sync, rebuild of `MONOLITH.glyphs` (two
+   `SPAC` masters, native kerning pairs), ExtraBold-only static exports
+   into `fonts/` (unkerned — the instance drops the `kern` feature; a
+   plain `glyphs export` would also emit Touching/Spaced/Variable cuts
+   that collide with the fontTools chain), the `variable` + `kern_axis`
+   finish, and the `pytest` + `ruff` gates — stopping at the first
+   failure. Per-stage commands live in [`scripts/regen.sh`](scripts/regen.sh);
+   its Glyphs steps go through [`scripts/glyphs-run.sh`](scripts/glyphs-run.sh),
+   which injects the framework flag and silences Glyphs' harmless
+   headless telemetry.
    Fallback without `glyphs-cli`: open `MONOLITH.glyphs` in Glyphs, paste
    [`scripts/macro_bootstrap.py`](scripts/macro_bootstrap.py) into
-   Window ▸ Scripting Window and press **Run**.
-2. Assemble and finish the variable font:
-
-   ```sh
-   uv run python -m monolith.variable   # base VF from the static (varLib)
-   uv run python -m monolith.kern_axis  # KERN axis + HVAR + Tight -> fonts/MONOLITH-Variable.ttf
-   ```
+   Window ▸ Scripting Window and press **Run**, then run
+   `uv run python -m monolith.variable` and
+   `uv run python -m monolith.kern_axis` for the variable font.
 
 **Regenerate the specimen images** (no Glyphs needed):
 

@@ -7,9 +7,11 @@
 # 1. Auto-injects `--python` from $GLYPHS_PYTHON_FW when the caller didn't
 #    pass one (this Mac's Glyphs has no framework configured; Macs that do
 #    can leave the variable unset and rely on Glyphs Settings).
-# 2. Filters Glyphs' Bugsnag telemetry spam — hundreds of identical,
-#    harmless stderr lines the headless engine emits — while preserving
-#    every other output line and the real exit code.
+# 2. Filters Glyphs' headless noise: the Bugsnag telemetry spam (hundreds of
+#    identical, harmless stderr lines the engine emits) plus the one-line
+#    "could not resolve link" warning for the knowingly-dangling SuperTool
+#    plugin symlink — while preserving every other output line and the
+#    real exit code.
 #
 # Usage:
 #   export GLYPHS_PYTHON_FW=/opt/homebrew/Frameworks/Python.framework/Versions/3.14/Python
@@ -39,5 +41,5 @@ fi
 
 out=$(uv run --group glyphs -- glyphs "$@" 2>&1)
 rc=$?
-printf '%s\n' "$out" | grep -v "Bugsnag" || true
+printf '%s\n' "$out" | grep -v -e "Bugsnag" -e "could not resolve link: .*SuperTool" || true
 exit "$rc"
