@@ -39,7 +39,7 @@ from monolith.kerning import KERN_PAIRS
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_SAVE = REPO_ROOT / "MONOLITH.glyphs"
 
-KEEP = set(DES) | set(LOWERCASE)
+KEEP = set(DES)
 
 
 def _signed_area(pts: Sequence[Point]) -> float:
@@ -346,24 +346,29 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
         set_unicode(g, name)
     print("letters/figures/punct drawn, new glyphs:", created)
 
-    # lowercase a-z as components of the caps
+    # Double-unicode all-caps: no a-z glyphs exist. Each cap carries its
+    # own codepoint plus the lowercase one (A: U+0041 + U+0061), so typing
+    # lowercase resolves via cmap to the cap glyph. Stale lowercase glyphs
+    # (incl. .spaced) from component-era saves are deleted.
     for lo, up in zip(LOWERCASE, LOWERCASE.upper()):
-        g = F.glyphs[lo]
-        if g is not None:
-            if remove_glyph(F, g):
-                g = None
-            else:
-                layer = master_layer(F, master, g)
-                clear_shapes(layer)
-        if g is None:
-            g = GSGlyph(lo)
-            F.glyphs.append(g)
-            created += 1
-        layer = master_layer(F, master, g)
-        layer.shapes.append(GSComponent(up))
-        layer.width = master_layer(F, master, F.glyphs[up]).width
-        set_unicode(g, lo)
-    print("lowercase mapped to caps, total glyphs:", len(F.glyphs))
+        for stale in (lo, lo + ".spaced"):
+            g = F.glyphs[stale]
+            if g is not None and not remove_glyph(F, g):
+                print("could not remove", stale)
+    for lo, up in zip(LOWERCASE, LOWERCASE.upper()):
+        g = F.glyphs[up]
+        upper_info = Glyphs.glyphInfoForName(up)
+        lower_info = Glyphs.glyphInfoForName(lo)
+        if (
+            upper_info is not None
+            and lower_info is not None
+            and upper_info.unicode
+            and lower_info.unicode
+        ):
+            g.unicodes = [upper_info.unicode, lower_info.unicode]
+        else:
+            print("unicode lookup failed for %s/%s" % (up, lo))
+    print("caps double-encoded, total glyphs:", len(F.glyphs))
 
     # "Loose spacing" alternates, toggled via ss01 / salt
     for name in sorted(DES.keys()):
@@ -383,12 +388,6 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
                     nd.position = (x + SPACED_LSB, y)
         layer.width = gl.width + 2 * SPACED_LSB
     print("spaced alternates drawn:", len(DES) - 1)
-
-    for lo, up in zip(LOWERCASE, LOWERCASE.upper()):
-        g = fresh_glyph(F, lo + ".spaced")
-        layer = master_layer(F, master, g)
-        layer.shapes.append(GSComponent(up + ".spaced"))
-        layer.width = master_layer(F, master, F.glyphs[up + ".spaced"]).width
 
     subs = ["sub %s by %s.spaced;" % (n, n) for n in substitution_names()]
     feature_code = 'featureNames {\n  name "Loose spacing";\n};\n' + "\n".join(subs)
