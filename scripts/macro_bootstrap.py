@@ -47,7 +47,8 @@ target = vf_dir / "MONOLITH-Variable-raw.ttf"
 var_inst = next((i for i in f.instances if i.type == INSTANCETYPEVARIABLE), None)
 if var_inst is None:
     var_inst = GSInstance()
-    var_inst.type = INSTANCETYPEVARIABLE
+    # the Python property is getter-only in 4.x; the ObjC setter works
+    var_inst.setType_(INSTANCETYPEVARIABLE)
     var_inst.name = "Variable"
     f.instances.append(var_inst)
 error = var_inst.generate("TTF", str(target))
