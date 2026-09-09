@@ -102,6 +102,7 @@ def test_advance_math_pinned_values() -> None:
 
 def test_substitution_names_complete() -> None:
     subs = set(substitution_names())
-    expected = {n for n in DES if n != "space"} | set(LOWERCASE)
+    expected = {n for n in DES if n != "space"}
     assert subs == expected
     assert "space" not in subs
+    assert not any(n in LOWERCASE for n in subs)

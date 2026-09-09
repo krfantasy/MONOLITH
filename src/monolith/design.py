@@ -300,5 +300,9 @@ def spaced_advance(name: str) -> int:
 
 
 def substitution_names() -> list[str]:
-    """Glyph set covered by the ss01/salt substitution lists."""
-    return sorted(n for n in DES if n != "space") + list(LOWERCASE)
+    """Glyph set covered by the ss01/salt substitution lists.
+
+    Caps only: this is a double-unicode all-caps font, so typing `a`
+    resolves via cmap to glyph `A` and `sub A by A.spaced` covers it.
+    """
+    return sorted(n for n in DES if n != "space")
