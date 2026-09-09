@@ -462,9 +462,23 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
         "SPAC axis set: %d glyphs mirrored into the Spaced master (+%d advance)"
         % (copied, spac_max)
     )
-    print("Spaced master layers holding shapes: %d of %d glyphs" % (registered, len(F.glyphs)))
-    if registered != len(F.glyphs):
-        print("WARNING: Spaced master incomplete — variable export will fail")
+    print(
+        "Spaced master layers holding shapes: %d of %d glyphs"
+        % (registered, len(F.glyphs))
+    )
+    # Only glyphs with ink in the tight master must have Spaced shapes;
+    # glyphs empty in both masters (space) are compatible, not missing.
+    missing = sorted(
+        g.name
+        for g in F.glyphs
+        if any(ly.layerId == tight_master.id and len(ly.shapes) for ly in g.layers)
+        and not any(ly.layerId == loose.id and len(ly.shapes) for ly in g.layers)
+    )
+    if missing:
+        print(
+            "WARNING: Spaced master missing shapes for: %s — variable export will fail"
+            % ", ".join(missing)
+        )
 
     # pair kerning from the seam metric as NATIVE per-master kerning —
     # visible and editable in Window > Kerning, and it's the data Glyphs
