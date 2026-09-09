@@ -124,15 +124,9 @@ def compute_kerns() -> dict[tuple[str, str], int]:
             k = proposed_value(gap)
             if k is not None:
                 out[(left, right)] = k
-    # lowercase glyphs render as the caps, so they need the same pairs.
-    # Digits have no lowercase variant, so only the CAPS side is lowered:
-    # CAPS+CAPS -> lower+lower, CAPS+DIGIT -> lower+DIGIT,
-    # DIGIT+CAPS -> DIGIT+lower, DIGIT+DIGIT needs no mirror.
-    for (lg, rg), k in list(out.items()):
-        ll = lg.lower() if lg in CAPS else lg
-        rr = rg.lower() if rg in CAPS else rg
-        if (ll, rr) != (lg, rg):
-            out[(ll, rr)] = k
+    # No lowercase mirrors: this is a double-unicode all-caps font, so
+    # `a` IS glyph `A` in the binaries and needs no pairs of its own.
+    # kern_for() still tolerates lowercase input via _base_form().
     return out
 
 

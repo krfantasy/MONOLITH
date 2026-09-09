@@ -29,17 +29,16 @@ def test_lowercase_mirrors_caps() -> None:
     assert K.kern_for("t", "j") == K.kern_for("T", "J")
 
 
-def test_lowercase_digit_pairs_mirror_caps() -> None:
-    # CAPS+DIGIT and DIGIT+CAPS pairs must exist in lowercase form too:
-    # lowercase renders as the caps, digits have no lowercase variant.
-    # ("one","A") is solid (gap -30, no kern), so use kerned pairs:
-    # ("A","one") -> ("a","one"), ("one","V") -> ("one","v").
+def test_lowercase_falls_back_to_caps() -> None:
+    # No lowercase keys ship in the table anymore (double-unicode: `a`
+    # IS glyph `A`); the lookup API still tolerates lowercase input.
     assert K.kern_for("A", "one") == -90
     assert K.kern_for("a", "one") == K.kern_for("A", "one")
     assert K.kern_for("one", "V") == -160
     assert K.kern_for("one", "v") == K.kern_for("one", "V")
-    assert ("a", "one") in K.KERN_PAIRS
-    assert ("one", "v") in K.KERN_PAIRS
+    assert ("a", "one") not in K.KERN_PAIRS
+    assert ("one", "v") not in K.KERN_PAIRS
+    assert not any(len(n) == 1 and n.islower() for pair in K.KERN_PAIRS for n in pair)
 
 
 def test_spaces_never_kern() -> None:
@@ -49,16 +48,16 @@ def test_spaces_never_kern() -> None:
 
 def test_table_invariants() -> None:
     assert len(K.KERN_PAIRS) > 300
-    # exact-count tripwire: the metric change in I2 landed at 932, and the
+    # exact-count tripwire: the double-unicode migration landed at 486, and the
     # prose claims it exactly (README Spacing/Kerning sections,
     # kern_axis.py docstring, macro_bootstrap.py header). If you retune the
     # metric, update the count in all four places together.
-    assert len(K.KERN_PAIRS) == 932
+    assert len(K.KERN_PAIRS) == 486
     for (lg, rg), v in K.KERN_PAIRS.items():
         assert -160 <= v <= -40, (lg, rg, v)
         assert v % 10 == 0, (lg, rg, v)
-        # every base kern is justified by a real baseline-band gap
-        # (lowercase entries are mirrors of cap pairs, covered above)
+        # every kern is justified by a real baseline-band gap
+        # (kern_for's lowercase fallback is covered by the tests above)
         if lg in K.BASE and rg in K.BASE:
             gap = K.band_gap(lg, rg)
             assert gap is not None and gap >= K.MIN_PULL + K.TARGET, (lg, rg, gap)
