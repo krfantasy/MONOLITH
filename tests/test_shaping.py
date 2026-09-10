@@ -111,3 +111,28 @@ def test_kern_axis_kerns_blind_symbols(vf_path: Path) -> None:
     assert _shaped_positions(vf_path, "T+", kern=100) == [430, 590]
     assert _shaped_positions(vf_path, "V=", kern=100) == [430, 590]
     assert _shaped_positions(vf_path, 'T"', kern=100) == [430, 370]
+
+
+def test_kern_axis_kerns_band_inked_punct(vf_path: Path) -> None:
+    # Punct scope (TODO.org "Missing: all punctuation/symbols"): the review's
+    # dead headlines now kern. WHAT? composes W+H -60, A+T -160 and the new
+    # T+question -160; (AV) composes parenleft+A -40, A+V -160 and
+    # V+parenright -160.
+    assert _shaped_positions(vf_path, "WHAT?", kern=0) == [590, 590, 590, 590, 430]
+    assert _shaped_positions(vf_path, "WHAT?", kern=100) == [530, 590, 430, 430, 430]
+    assert _shaped_positions(vf_path, "A/B", kern=100) == [510, 430, 590]
+    assert _shaped_positions(vf_path, "(AV)", kern=100) == [390, 430, 430, 430]
+    assert _shaped_positions(vf_path, "H?H", kern=100) == [430, 330, 590]
+    assert _shaped_positions(vf_path, "H/H", kern=100) == [510, 430, 590]
+    assert _shaped_positions(vf_path, "H(H", kern=100) == [430, 390, 590]
+    assert _shaped_positions(vf_path, "V.H", kern=100) == [430, 170, 590]
+    assert _shaped_positions(vf_path, "H.V", kern=100) == [590, 10, 590]
+
+
+def test_punct_stays_fused_when_baseline_solid(vf_path: Path) -> None:
+    # "correctly absent" (TODO.org bullet 3): a solid stem fuses the
+    # baseline-sitting marks at -30; KERN 100 must not move them.
+    for text in ("H.", "H,", "H:", "H!"):
+        assert _shaped_positions(vf_path, text, kern=100) == _shaped_positions(
+            vf_path, text, kern=0
+        )
