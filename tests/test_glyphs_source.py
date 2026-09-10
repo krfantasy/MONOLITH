@@ -53,8 +53,7 @@ def test_keep_alternates_together_parameter(font: dict) -> None:
     # fragmenting the glyph grid into per-letter groups.
     params = font.get("customParameters", [])
     assert any(
-        p.get("name") == "Keep Alternates Together" and str(p.get("value")) == "1"
-        for p in params
+        p.get("name") == "Keep Alternates Together" and str(p.get("value")) == "1" for p in params
     )
 
 
