@@ -201,3 +201,46 @@ def test_baseline_band_stays_authoritative() -> None:
     # E+A reads in the baseline band (-30 fusion), never at its y=140 notch
     assert K.kern_for("E", "A") == 0
     assert K.band_gap("E", "A") == K.TARGET
+
+
+# Smoke pins for the pre-punct table (the 486 letter pairs and the 615
+# band-blind pairs). Value drift with an UNCHANGED pair count would slip past
+# both the count tripwire in test_table_invariants and the source-mirror
+# equality in test_glyphs_source.py, so these representative pairs pin every
+# distinct value the metric produced for the old table, in both directions.
+# A deliberate retune that moves one must update it here consciously.
+PRIOR_VALUE_PINS: dict[tuple[str, str], int] = {
+    # letters + digits (the 486-pair era)
+    ("A", "W"): -60,  # W as right: the smallest kept pull family
+    ("W", "A"): -60,
+    ("H", "W"): -60,
+    ("W", "W"): -120,
+    ("B", "J"): -120,
+    ("W", "one"): -150,
+    ("W", "J"): -160,
+    ("A", "T"): -160,
+    ("A", "five"): -160,
+    ("seven", "T"): -160,
+    # band-blind symbols read in their own ink span (the 1101-pair era)
+    ("A", "equal"): -60,
+    ("grave", "asciitilde"): -60,
+    ("Z", "quotesingle"): -70,
+    ("V", "quotedbl"): -80,
+    ("hyphen", "one"): -90,
+    ("W", "equal"): -100,
+    ("K", "quotedbl"): -110,
+    ("V", "hyphen"): -110,
+    ("emdash", "V"): -110,
+    ("asciicircum", "equal"): -110,
+    ("equal", "equal"): -120,
+    ("Q", "equal"): -130,
+    ("X", "hyphen"): -130,
+    ("R", "hyphen"): -140,
+    ("asterisk", "A"): -140,
+    ("equal", "one"): -150,
+}
+
+
+def test_prior_values_smoke_pins() -> None:
+    for pair, want in PRIOR_VALUE_PINS.items():
+        assert K.KERN_PAIRS.get(pair) == want, (pair, K.KERN_PAIRS.get(pair), want)
