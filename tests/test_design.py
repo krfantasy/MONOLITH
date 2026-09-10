@@ -53,9 +53,9 @@ def test_quad_parallel_edge_pairs_at_least_100_units() -> None:
     thin-wedge regression class (illegible at 12pt).
 
     GRANDFATHERED (controller ruling, task 2): three intentional thin
-    strokes already shipped in the font and transcribed 1:1 from
-    glyph_gen.py - zero's diagonal slash (78u, commit f1d5067) and the
-    two asterisk arms (45u). Everything else still needs >= 100u.
+    strokes already shipped in the font - zero's diagonal slash
+    (78u, commit f1d5067) and the two asterisk arms (45u).
+    Everything else still needs >= 100u.
     """
     grandfathered = {
         ("asterisk", ((120, 480), (210, 480), (500, 650), (410, 650))),
