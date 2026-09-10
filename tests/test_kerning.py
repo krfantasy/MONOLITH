@@ -1,7 +1,7 @@
 """Seam-metric kern table invariants."""
 
 from monolith import kerning as K
-from monolith.design import TIGHT_OVERLAP
+from monolith.design import DES, TIGHT_OVERLAP
 
 
 def test_solid_pairs_are_at_standard_fusion() -> None:
@@ -48,13 +48,14 @@ def test_spaces_never_kern() -> None:
 
 def test_table_invariants() -> None:
     assert len(K.KERN_PAIRS) > 300
-    # exact-count tripwire: the blind-spot fix landed at 1101 (486 letter
-    # pairs unchanged + 615 band-blind pairs), and the prose claims it
-    # exactly (README Spacing/Kerning sections, kern_axis.py docstring,
-    # macro_bootstrap.py header; monolith-spac.html's spans regenerate via
-    # scripts/extract_html_kern.py). If you retune the metric, update the
-    # count in all five places together (this test + the four prose places).
-    assert len(K.KERN_PAIRS) == 1101
+    # exact-count tripwire: the punct-scope fix landed at 2866 (the 1101
+    # blind-spot table byte-identical + 1765 punct pairs), and the prose
+    # claims it exactly (README Spacing/Kerning sections, kern_axis.py
+    # docstring, macro_bootstrap.py header; monolith-spac.html's spans
+    # regenerate via scripts/extract_html_kern.py). If you retune the
+    # metric, update the count in all five places together (this test +
+    # the four prose places).
+    assert len(K.KERN_PAIRS) == 2866
     letters = {(lg, rg): v for (lg, rg), v in K.KERN_PAIRS.items() if lg in K.BASE and rg in K.BASE}
     assert len(letters) == 486  # the letter table is untouched by the fix
     for (lg, rg), v in K.KERN_PAIRS.items():
@@ -89,13 +90,85 @@ BLIND = (
 )
 
 
+INKED = (
+    "ampersand",
+    "at",
+    "backslash",
+    "bar",
+    "braceleft",
+    "braceright",
+    "bracketleft",
+    "bracketright",
+    "colon",
+    "comma",
+    "dollar",
+    "exclam",
+    "greater",
+    "less",
+    "numbersign",
+    "parenleft",
+    "parenright",
+    "percent",
+    "period",
+    "question",
+    "semicolon",
+    "slash",
+    "underscore",
+)
+
+
 def test_band_blind_set_is_exactly_the_eleven() -> None:
     # TODO.org "Metric blind spots": these 11 glyphs have no ink in the
-    # baseline band and kern via the widened fallback; band-inked punct
-    # stays out pending the separate punct-scope decision.
-    assert tuple(n for n in K.KERNABLE if n not in K.BASE) == BLIND
+    # baseline band and kern via the shared-ink-span fallback.
+    blind = tuple(n for n in sorted(DES) if n != "space" and not K._has_band_ink(n))
+    assert blind == BLIND
     assert all(not K._has_band_ink(n) for n in BLIND)
     assert all(K._has_band_ink(n) for n in K.BASE)
+    assert all(K._has_band_ink(n) for n in INKED)
+
+
+def test_punct_scope_covers_every_non_space_glyph() -> None:
+    # TODO.org "Missing: all punctuation/symbols (34 glyphs, 0 pairs today)":
+    # the scope decision — kern everything except space; the metric, not the
+    # glyph list, decides which pairs get values.
+    assert K.KERNABLE == tuple(n for n in sorted(DES) if n != "space")
+    assert all(n in K.KERNABLE for n in INKED)
+    assert "space" not in K.KERNABLE
+
+
+def test_punct_pairs_match_the_review() -> None:
+    # the seams the kern review shaped and found dead (TODO.org bullet 2);
+    # values probe-verified against the unchanged metric on f6fe511
+    assert K.kern_for("H", "question") == -160
+    assert K.kern_for("question", "H") == -100
+    assert K.kern_for("H", "slash") == -80
+    assert K.kern_for("slash", "H") == -160
+    assert K.kern_for("H", "backslash") == -160
+    assert K.kern_for("backslash", "H") == -80
+    assert K.kern_for("H", "parenleft") == -160
+    assert K.kern_for("parenleft", "H") == -40
+    assert K.kern_for("H", "parenright") == -40
+    assert K.kern_for("parenright", "H") == -160
+    assert K.kern_for("V", "period") == -160
+    assert K.kern_for("period", "V") == -160
+    assert K.kern_for("H", "less") == -160
+    assert K.kern_for("less", "H") == -60
+    assert K.kern_for("H", "greater") == -160
+    assert K.kern_for("greater", "H") == -160
+    assert K.kern_for("H", "numbersign") == -100
+    assert K.kern_for("numbersign", "H") == -40
+    assert K.kern_for("H", "percent") == -110
+
+
+def test_punct_absent_when_already_fused() -> None:
+    # "correctly absent (gap -30, do not blanket-add)" (TODO.org bullet 3):
+    # baseline-sitting marks after a solid stem stay fused, and percent+H's
+    # seam pull is below MIN_PULL — the rule must not blanket-add
+    assert K.kern_for("H", "period") == 0
+    assert K.kern_for("H", "comma") == 0
+    assert K.kern_for("H", "colon") == 0
+    assert K.kern_for("H", "exclam") == 0
+    assert K.kern_for("percent", "H") == 0
 
 
 def test_blind_pairs_read_their_own_band() -> None:

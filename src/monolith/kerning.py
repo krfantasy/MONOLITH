@@ -8,7 +8,9 @@ and the right glyph's leftmost ink once both are placed at the default
 advance; positive means air, TIGHT_OVERLAP means the standard 30-unit
 fusion. Glyphs with no ink in the baseline band (quotes, dashes, math
 signs) read in the pair's shared ink span instead — the band alone would
-never see them. KERN_PAIRS is computed at import from the rule below (run
+never see them. The table's scope is every glyph except `space`; the
+metric decides which pairs of those actually kern. KERN_PAIRS is computed
+at import from the rule below (run
 `python -m monolith.kerning` to print the table) and is the single source of
 truth for build.py (native Glyphs kerning, shown in the Kerning window)
 and kern_axis.py (the variable font's KERN axis GPOS VariationStore).
@@ -96,14 +98,13 @@ def _has_band_ink(name: str) -> bool:
     )
 
 
-# Everything the table computes pairs for: BASE plus every non-BASE glyph
-# with no ink in the baseline band (quotes, dashes, math signs). The band
-# cannot see those glyphs, so the widened band_gap fallback below is their
-# only reader. Band-inked punctuation (period, slash, parens, ...) waits on
-# the separate punct-scope decision and stays out of the table.
-KERNABLE: tuple[str, ...] = BASE + tuple(
-    name for name in sorted(DES) if name != "space" and name not in BASE and not _has_band_ink(name)
-)
+# Everything the table computes pairs for: every glyph except `space`
+# (spaces never kern; kern_for also refuses them). The 2026-09-10 punct
+# scope decision: punctuation kerns like letters — the metric, not the
+# glyph list, decides which pairs get values. Glyphs with no ink in the
+# baseline band (quotes, dashes, math signs) are read by the band_gap
+# fallback in their own shared ink span.
+KERNABLE: tuple[str, ...] = tuple(name for name in sorted(DES) if name != "space")
 
 
 def seam_gap(left: str, right: str, y: float) -> float | None:
