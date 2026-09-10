@@ -6,7 +6,9 @@ vertical (V, Y, T, L, J, one, seven). The seam gap of an ordered pair at
 height y is the horizontal distance between the left glyph's rightmost ink
 and the right glyph's leftmost ink once both are placed at the default
 advance; positive means air, TIGHT_OVERLAP means the standard 30-unit
-fusion. KERN_PAIRS is computed at import from the rule below (run
+fusion. Glyphs with no ink in the baseline band (quotes, dashes, math
+signs) read in the pair's shared ink span instead — the band alone would
+never see them. KERN_PAIRS is computed at import from the rule below (run
 `python -m monolith.kerning` to print the table) and is the single source of
 truth for build.py (native Glyphs kerning, shown in the Kerning window)
 and kern_axis.py (the variable font's KERN axis GPOS VariationStore).
@@ -81,6 +83,29 @@ def _ink_extent(shapes: tuple, y: float) -> tuple[float, float] | None:
     return min(a for a, _ in iv), max(b for _, b in iv)
 
 
+def _ink_y_span(name: str) -> tuple[int, int] | None:
+    """(lowest y, highest y) of a glyph's ink, or None for the empty glyph."""
+    ys = [py for s in DES[name].shapes for (_, py) in _shape_points(s)]
+    return (min(ys), max(ys)) if ys else None
+
+
+def _has_band_ink(name: str) -> bool:
+    return any(
+        _ink_extent(DES[name].shapes, float(y)) is not None
+        for y in range(BAND_Y0, BAND_Y1 + 1, BAND_STEP)
+    )
+
+
+# Everything the table computes pairs for: BASE plus every non-BASE glyph
+# with no ink in the baseline band (quotes, dashes, math signs). The band
+# cannot see those glyphs, so the widened band_gap fallback below is their
+# only reader. Band-inked punctuation (period, slash, parens, ...) waits on
+# the separate punct-scope decision and stays out of the table.
+KERNABLE: tuple[str, ...] = BASE + tuple(
+    name for name in sorted(DES) if name != "space" and name not in BASE and not _has_band_ink(name)
+)
+
+
 def seam_gap(left: str, right: str, y: float) -> float | None:
     """Air between the pair at height y under default tight advances."""
     l_extent = _ink_extent(DES[left].shapes, y)
@@ -92,10 +117,29 @@ def seam_gap(left: str, right: str, y: float) -> float | None:
 
 
 def band_gap(left: str, right: str) -> float | None:
-    """Widest seam gap in the baseline band (where fusion reads)."""
+    """Widest seam gap where the pair's fusion reads.
+
+    Pairs with any baseline-band ink read there, so mid-height notches stay
+    ignored by design (E+A keeps its baseline fusion). A glyph with no band
+    ink (quotes, dashes, math signs) cannot fuse at the baseline at all, so
+    a pair with no band reading falls back to the pair's shared ink span —
+    without the fallback the metric is blind to those glyphs and they could
+    never kern either way.
+    """
     gaps = [
         g
         for y in range(BAND_Y0, BAND_Y1 + 1, BAND_STEP)
+        if (g := seam_gap(left, right, float(y))) is not None
+    ]
+    if gaps:
+        return max(gaps)
+    l_span, r_span = _ink_y_span(left), _ink_y_span(right)
+    if l_span is None or r_span is None:
+        return None
+    y0, y1 = max(l_span[0], r_span[0]), min(l_span[1], r_span[1])
+    gaps = [
+        g
+        for y in range(int(y0), int(y1) + 1, BAND_STEP)
         if (g := seam_gap(left, right, float(y))) is not None
     ]
     return max(gaps) if gaps else None
@@ -116,8 +160,8 @@ def proposed_value(gap: float) -> int | None:
 
 def compute_kerns() -> dict[tuple[str, str], int]:
     out: dict[tuple[str, str], int] = {}
-    for left in BASE:
-        for right in BASE:
+    for left in KERNABLE:
+        for right in KERNABLE:
             gap = band_gap(left, right)
             if gap is None:
                 continue

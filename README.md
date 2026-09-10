@@ -68,14 +68,15 @@ has a `.spaced` alternate with 50-unit sidebearings, substituted by:
 
 MONOLITH ships **kern-free by default** — the pure block look is the default
 everywhere. On top of that, the variable font carries a **`KERN` axis
-(0–100, default 0)** that scales 486 seam-metric kern pairs (computed from
-where each letter's edge recedes from the vertical — A/V, A/J, T/…), from
+(0–100, default 0)** that scales 1101 seam-metric kern pairs (computed from
+where each glyph's edge recedes from the vertical — A/V, A/J, T/…; symbols
+with no baseline ink, like quotes and dashes, read in their own band), from
 no kerning at 0 to full kerning at 100:
 
 - **CSS:** `font-variation-settings: "KERN" 100;`
 - Values interpolate: `KERN 50` applies every kern at half strength.
 - The statics have no kerning at all (their instance drops the feature).
-- The same 486 pairs live in the Glyphs source's native kerning table —
+- The same 1101 pairs live in the Glyphs source's native kerning table —
   open Window ▸ Kerning to inspect or tweak them.
 
 ![Kerned specimen](specimens/specimen-kern100.png)
