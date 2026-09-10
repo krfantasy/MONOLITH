@@ -96,3 +96,20 @@ def test_caps_carry_double_unicodes(font: dict) -> None:
             except ValueError:
                 values.add(int(s, 16))
         assert values == {ord(up), ord(lo)}, up
+
+
+def test_source_kerning_mirrors_the_table(font: dict) -> None:
+    """Every master's native kerning must equal KERN_PAIRS exactly.
+
+    The e033410 incident: the grid-order reorder silently dropped all pairs
+    (486 at the time; 1101 now) and nothing pinned the source. Full-equality (not a count) so a
+    retuned table and a stale source can never pass together.
+    """
+    from monolith.kerning import KERN_PAIRS
+
+    kerning = font.get("kerningLTR") or {}
+    assert kerning, "source lost its native kerning (kerningLTR empty)"
+    assert len(kerning) == 2  # both SPAC masters carry the table
+    for master_id, pairs in kerning.items():
+        got = {(lg, rg): int(v) for lg, rights in pairs.items() for rg, v in rights.items()}
+        assert got == dict(KERN_PAIRS), master_id

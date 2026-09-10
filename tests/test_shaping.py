@@ -98,3 +98,16 @@ def test_solid_pair_unaffected(vf_path: Path) -> None:
 def test_lowercase_shapes_as_caps(vf_path: Path) -> None:
     assert _shaped_positions(vf_path, "a") == _shaped_positions(vf_path, "A")
     assert _shaped_positions(vf_path, "av", kern=100) == _shaped_positions(vf_path, "AV", kern=100)
+
+
+def test_kern_axis_kerns_blind_symbols(vf_path: Path) -> None:
+    # Metric blind spots: hyphen/plus/equal/quotedbl have no baseline-band
+    # ink; their pairs read in the symbol's own band (T+hyphen gap 150 ->
+    # capped -160). "T-T" kerns BOTH seams via the hyphen; in "T-H" the
+    # trailing H fuses the hyphen (gap -30, no pair) so only seam 1 kerns.
+    assert _shaped_positions(vf_path, "T-H", kern=0) == [590, 370, 590]
+    assert _shaped_positions(vf_path, "T-H", kern=100) == [430, 370, 590]
+    assert _shaped_positions(vf_path, "T-T", kern=100) == [430, 210, 590]
+    assert _shaped_positions(vf_path, "T+", kern=100) == [430, 590]
+    assert _shaped_positions(vf_path, "V=", kern=100) == [430, 590]
+    assert _shaped_positions(vf_path, 'T"', kern=100) == [430, 370]

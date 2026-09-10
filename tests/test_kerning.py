@@ -53,7 +53,7 @@ def test_table_invariants() -> None:
     # exactly (README Spacing/Kerning sections, kern_axis.py docstring,
     # macro_bootstrap.py header; monolith-spac.html's spans regenerate via
     # scripts/extract_html_kern.py). If you retune the metric, update the
-    # count in all four places together.
+    # count in all five places together (this test + the four prose places).
     assert len(K.KERN_PAIRS) == 1101
     letters = {(lg, rg): v for (lg, rg), v in K.KERN_PAIRS.items() if lg in K.BASE and rg in K.BASE}
     assert len(letters) == 486  # the letter table is untouched by the fix
