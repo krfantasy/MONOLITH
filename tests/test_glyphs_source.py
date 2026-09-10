@@ -102,8 +102,8 @@ def test_source_kerning_mirrors_the_table(font: dict) -> None:
     """Every master's native kerning must equal KERN_PAIRS exactly.
 
     The e033410 incident: the grid-order reorder silently dropped all pairs
-    (486 at the time) and nothing pinned the source. Full-equality (not a count) so a
-    retuned table and a stale source can never pass together.
+    (486 at the time) and nothing pinned the source. Full equality, not a
+    count, so a retuned table and a stale source can never pass together.
     """
     from monolith.kerning import KERN_PAIRS
 

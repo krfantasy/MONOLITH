@@ -92,6 +92,9 @@ def _ink_y_span(name: str) -> tuple[int, int] | None:
 
 
 def _has_band_ink(name: str) -> bool:
+    """Test oracle for the band-blind set: True when the glyph has ink in the
+    baseline band. band_gap detects band-blindness implicitly (no band row
+    reads), so this is deliberately kept as the tests' readable probe."""
     return any(
         _ink_extent(DES[name].shapes, float(y)) is not None
         for y in range(BAND_Y0, BAND_Y1 + 1, BAND_STEP)
