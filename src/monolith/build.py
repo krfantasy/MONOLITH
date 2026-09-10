@@ -483,14 +483,9 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
             % ", ".join(missing)
         )
 
-    # pair kerning from the seam metric as NATIVE per-master kerning —
-    # visible and editable in Window > Kerning, and it's the data Glyphs
-    # itself interpolates and compiles into GPOS at export. Needs both
-    # masters in place, hence after the SPAC block. The .spaced alternates
-    # stay unkerned: kerning is keyed on glyph names, so a glyph
-    # substituted for a .spaced alternate drops out of every pair.
-    drop_feature(F, "kern")
-    set_native_kerning(F)
+    # NOTE: native kerning is written AFTER the grid-order block below:
+    # deleting/re-adding glyphs (the reorder) drops their kerning pairs,
+    # so writing here would be silently wiped (seen in e033410).
 
     # instances: ExtraBold is the static export (SPAC 0 keeps the shipped
     # tight look); Touching/Spaced become the variable font's named instances.
@@ -548,7 +543,8 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
     # .spaced alternates last, splitting the grid into repeated category
     # runs — and headless saves do not re-sort (GUI saves with Keep
     # Alternates Together did). Rebuild the glyphs array in the canonical
-    # order; kerning (keyed by name) and per-glyph layers are unaffected.
+    # order. WARNING: removing/re-adding glyphs drops their kerning pairs,
+    # so native kerning must be (re)written AFTER this block, never before.
     desired = grid_order(DES)
     by_name = {g.name: g for g in F.glyphs}
     extras = sorted(name for name in by_name if name not in set(desired))
@@ -561,6 +557,17 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
         for name in desired:
             F.glyphs.append(by_name[name])
         print("glyph order normalized:", len(desired), "glyphs")
+
+    # pair kerning from the seam metric as NATIVE per-master kerning —
+    # visible and editable in Window > Kerning, and it's the data Glyphs
+    # itself interpolates and compiles into GPOS at export. Needs both
+    # masters in place, hence after the SPAC block — and AFTER the
+    # grid-order block above, whose glyph remove/re-add drops kerning.
+    # The .spaced alternates stay unkerned: kerning is keyed on glyph
+    # names, so a glyph substituted for a .spaced alternate drops out of
+    # every pair.
+    drop_feature(F, "kern")
+    set_native_kerning(F)
 
     strip_axis_locations(F)
 
