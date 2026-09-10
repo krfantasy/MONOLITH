@@ -46,6 +46,30 @@ def test_no_axis_location_parameters(font: dict) -> None:
             assert "Axis Location" not in names, (kind, obj.get("name"), names)
 
 
+def test_keep_alternates_together_parameter(font: dict) -> None:
+    # Font-level parameter (serialized GSFont.keepAlternatesTogether; no GUI
+    # surface in Glyphs 4.1 — build.setup_font sets it via the ObjC setter).
+    # Keeps .spaced alternates sorting next to their base glyphs instead of
+    # fragmenting the glyph grid into per-letter groups.
+    params = font.get("customParameters", [])
+    assert any(
+        p.get("name") == "Keep Alternates Together" and str(p.get("value")) == "1"
+        for p in params
+    )
+
+
+def test_glyph_order_groups_alternates_with_bases(font: dict) -> None:
+    # The Font tab follows the file's glyph array. The draw phases would
+    # leave it alphabetical with all .spaced last, splitting the grid into
+    # repeated category runs ("Letter, Latin" twice) — and headless saves
+    # do not re-sort (GUI saves with Keep Alternates Together did), so
+    # build.run re-applies design.grid_order before saving.
+    from monolith.design import DES, grid_order
+
+    names = [g["glyphname"] for g in font.get("glyphs", [])]
+    assert names == grid_order(DES)
+
+
 def test_master_locations_span_the_spac_axis(font: dict) -> None:
     values = sorted(int(v) for m in font["fontMaster"] for v in m["axesValues"])
     assert values == [0, 130]

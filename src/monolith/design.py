@@ -306,3 +306,49 @@ def substitution_names() -> list[str]:
     resolves via cmap to glyph `A` and `sub A by A.spaced` covers it.
     """
     return sorted(n for n in DES if n != "space")
+
+
+_CAPS = [chr(c) for c in range(ord("A"), ord("Z") + 1)]
+_DIGITS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+_PUNCT = [
+    "period", "comma", "colon", "semicolon", "exclam", "question",
+    "asterisk", "numbersign", "slash", "backslash", "hyphen", "endash",
+    "emdash", "underscore", "parenleft", "parenright", "braceleft",
+    "braceright", "bracketleft", "bracketright", "quotedbl", "quotesingle",
+    "at", "ampersand", "bar", "dollar", "plus", "equal", "greater", "less",
+    "asciitilde", "asciicircum", "percent", "grave",
+]
+
+
+def grid_order(des: dict[str, Glyph]) -> list[str]:
+    """Font-tab display order: one glyph run per category, alternates beside bases.
+
+    The draw phases leave glyphs alphabetical with all .spaced alternates
+    appended last, which fragments the grid into repeated category runs
+    ("Letter, Latin" twice). GUI saves with Keep Alternates Together used
+    to re-sort; headless saves do not, so build.run applies this order
+    before saving. It replicates the Glyphs-side sort of the original fix:
+    caps + .spaced interleaved, digits in numeric order followed by their
+    .spaced block, space, then punctuation/symbols + .spaced interleaved.
+    Bases outside the known buckets (future glyphs) are appended
+    alphabetically, still beside their alternates.
+    """
+
+    def interleaved(names: list[str]) -> list[str]:
+        # design rule: every base except `space` ships a .spaced alternate
+        out: list[str] = []
+        for name in names:
+            out.append(name)
+            if name != "space":
+                out.append(name + ".spaced")
+        return out
+
+    bucketed = set(_CAPS) | set(_DIGITS) | set(_PUNCT) | {"space"}
+    extras = sorted(n for n in des if n not in bucketed and not n.endswith(".spaced"))
+    return (
+        interleaved(_CAPS)
+        + _DIGITS
+        + [d + ".spaced" for d in _DIGITS]
+        + (["space"] if "space" in des else [])
+        + interleaved(_PUNCT + extras)
+    )

@@ -31,6 +31,7 @@ from monolith.design import (
     Point,
     Rect,
     Shape,
+    grid_order,
     substitution_names,
     tight_advance,
 )
@@ -107,6 +108,11 @@ def setup_font(F: Any, master: Any) -> None:
             master.weight = "ExtraBold"
         except Exception:
             pass
+    # Keep .spaced alternates next to their base glyphs in the grid instead
+    # of fragmenting the category groups. GSFont.keepAlternatesTogether is
+    # getter-only in Glyphs 4.1 and has no GUI surface; the ObjC setter
+    # persists it as the font-level "Keep Alternates Together" parameter.
+    F.setKeepAlternatesTogether_(True)
 
 
 def master_layer(F: Any, master: Any, g: GSGlyph) -> GSLayer:
@@ -537,6 +543,24 @@ def run(font: Any = None, save_path: str | Path | None = None) -> Any:
             "after fix: wall=%s hole=%s"
             % (winding_at(o_layer, 60.0, 350.0), winding_at(o_layer, 310.0, 350.0))
         )
+
+    # Font-tab order: the draw phases leave glyphs alphabetical with all
+    # .spaced alternates last, splitting the grid into repeated category
+    # runs — and headless saves do not re-sort (GUI saves with Keep
+    # Alternates Together did). Rebuild the glyphs array in the canonical
+    # order; kerning (keyed by name) and per-glyph layers are unaffected.
+    desired = grid_order(DES)
+    by_name = {g.name: g for g in F.glyphs}
+    extras = sorted(name for name in by_name if name not in set(desired))
+    if extras:
+        print("glyphs outside grid order (appended last):", extras)
+        desired += extras
+    if [g.name for g in F.glyphs] != desired:
+        for g in list(F.glyphs):
+            remove_glyph(F, g)
+        for name in desired:
+            F.glyphs.append(by_name[name])
+        print("glyph order normalized:", len(desired), "glyphs")
 
     strip_axis_locations(F)
 
