@@ -44,6 +44,10 @@ def test_lowercase_falls_back_to_caps() -> None:
 def test_spaces_never_kern() -> None:
     assert K.kern_for(" ", "V") == 0
     assert K.kern_for("V", " ") == 0
+    # glyph-name form gets the same explicit contract, not dict-miss luck
+    assert K.kern_for("space", "V") == 0
+    assert K.kern_for("V", "space") == 0
+    assert K.kern_for("space", "space") == 0
 
 
 def test_table_invariants() -> None:
@@ -65,6 +69,31 @@ def test_table_invariants() -> None:
         # (kern_for's lowercase fallback is covered by the tests above)
         gap = K.band_gap(lg, rg)
         assert gap is not None and gap >= K.MIN_PULL + K.TARGET, (lg, rg, gap)
+
+
+def test_punct_breakdown_matches_the_review() -> None:
+    # TODO.org "Missing: all punctuation/symbols" closing note: the +1765
+    # is 468 BASE+punct, 531 punct+BASE, 391 punct+punct, 375 blind×inked.
+    # The total-only tripwire above can't localize a retune; pin the
+    # partition so the next metric drift names its quadrant.
+    in_base, in_blind, in_inked = set(K.BASE), set(BLIND), set(INKED)
+
+    def cls(n: str) -> str:
+        if n in in_base:
+            return "BASE"
+        if n in in_blind:
+            return "BLIND"
+        assert n in in_inked, n
+        return "INKED"
+
+    counts: dict[tuple[str, str], int] = {}
+    for lg, rg in K.KERN_PAIRS:
+        key = (cls(lg), cls(rg))
+        counts[key] = counts.get(key, 0) + 1
+    assert counts.get(("BASE", "INKED"), 0) == 468
+    assert counts.get(("INKED", "BASE"), 0) == 531
+    assert counts.get(("INKED", "INKED"), 0) == 391
+    assert counts.get(("BLIND", "INKED"), 0) + counts.get(("INKED", "BLIND"), 0) == 375
 
 
 def test_baseline_solid_left_edges_do_not_kern() -> None:
@@ -173,10 +202,16 @@ def test_punct_absent_when_already_fused() -> None:
 
 def test_blind_pairs_read_their_own_band() -> None:
     # the exact gaps the kern review quoted (TODO.org)
-    assert abs(K.band_gap("T", "hyphen") - 150.0) < 1e-9
-    assert abs(K.band_gap("T", "plus") - 380.0) < 1e-9
-    assert abs(K.band_gap("V", "equal") - 1160 / 7) < 1e-9
-    assert abs(K.band_gap("T", "quotedbl") - 150.0) < 1e-9
+    gaps = {
+        ("T", "hyphen"): 150.0,
+        ("T", "plus"): 380.0,
+        ("V", "equal"): 1160 / 7,
+        ("T", "quotedbl"): 150.0,
+    }
+    for (lg, rg), want in gaps.items():
+        gap = K.band_gap(lg, rg)
+        assert gap is not None, (lg, rg)
+        assert abs(gap - want) < 1e-9, (lg, rg, gap)
     for lg, rg in (
         ("T", "hyphen"),
         ("hyphen", "T"),

@@ -95,6 +95,13 @@ def test_advance_math_pinned_values() -> None:
     assert design.tight_advance("A") == 590
     assert design.tight_advance("one") == 320  # 350 - 30
     assert design.tight_advance("space") == 240
+    # shaping expectations in test_shaping.py rest on these punct widths:
+    # pin them here so a DES width edit fails loudly at the source
+    assert design.tight_advance("question") == 430
+    assert design.tight_advance("period") == 170
+    assert design.tight_advance("slash") == 590
+    assert design.tight_advance("parenleft") == 430
+    assert design.tight_advance("parenright") == 430
     # spaced alternates: LSB/RSB 50 on both sides (A: 620 -> 720)
     assert design.spaced_advance("A") == 720
     assert design.spaced_advance("space") == 340  # formula applies; space is never drawn as .spaced

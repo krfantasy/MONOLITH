@@ -195,7 +195,7 @@ def kern_for(left: str, right: str) -> int:
     falls back to the cap pair (lowercase renders as the caps). Kept as the
     readable way to query the table — tests and design checks go through it
     rather than poking the dict directly."""
-    if left == " " or right == " ":
+    if left in (" ", "space") or right in (" ", "space"):
         return 0
     k = KERN_PAIRS.get((left, right))
     if k is not None:
