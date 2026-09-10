@@ -8,7 +8,10 @@ and the right glyph's leftmost ink once both are placed at the default
 advance; positive means air, TIGHT_OVERLAP means the standard 30-unit
 fusion. Glyphs with no ink in the baseline band (quotes, dashes, math
 signs) read in the pair's shared ink span instead — the band alone would
-never see them. The table's scope is every glyph except `space`; the
+never see them. A baseline foot wider than the body above it (L) is
+bypassed the same way: the foot fuses the baseline, but the seam the eye
+reads sits above it, at the body edge. The table's scope is every glyph
+except `space`; the
 metric decides which pairs of those actually kern. KERN_PAIRS is computed
 at import from the rule below (run
 `python -m monolith.kerning` to print the table) and is the single source of
@@ -33,6 +36,7 @@ MAX_PULL = 160.0  # never kern further than this
 MIN_PULL = 40.0  # ignore pairs whose correction would be smaller
 ROUND_TO = 10
 BAND_Y0, BAND_Y1, BAND_STEP = 20, 120, 4  # the baseline band where fusion reads
+BODY_Y0 = 200  # top of the baseline zone: feet and bars live at or below this
 
 
 def _shape_points(shape: Any) -> list[tuple[float, float]]:
@@ -101,6 +105,32 @@ def _has_band_ink(name: str) -> bool:
     )
 
 
+def _body_right(name: str) -> float | None:
+    """Widest visible ink right edge from BODY_Y0 up, or None when the glyph
+    has no ink in the body zone (sampled at BAND_STEP like the band)."""
+    exts = [
+        e
+        for y in range(BODY_Y0, 701, BAND_STEP)
+        if (e := _ink_extent(DES[name].shapes, float(y))) is not None
+    ]
+    return max(b for _, b in exts) if exts else None
+
+
+def _is_baseline_foot(shape: Any, body: float) -> bool:
+    """True for an inked axis-aligned bar confined to the baseline zone that
+    protrudes past the body's widest edge — L's foot (0-620, y 0-200) over
+    its 260 stem. Diagonal tails (semicolon, comma, backslash) are polys,
+    not bars; U/J/Z baseline bars only reach their body width; percent's
+    bottom box tops out above the body zone; holes are not ink."""
+    return (
+        isinstance(shape, Rect)
+        and not shape.hole
+        and shape.y1 <= BODY_Y0
+        and shape.y0 < BAND_Y1
+        and shape.x1 > body
+    )
+
+
 # Everything the table computes pairs for: every glyph except `space`
 # (spaces never kern; kern_for also refuses them). The 2026-09-10 punct
 # scope decision: punctuation kerns like letters — the metric, not the
@@ -109,15 +139,35 @@ def _has_band_ink(name: str) -> bool:
 # fallback in their own shared ink span.
 KERNABLE: tuple[str, ...] = tuple(name for name in sorted(DES) if name != "space")
 
+# Glyphs whose baseline-band edge is a foot wider than their body: the band
+# would read the foot and hide the body edge (L kerned like H, so LU/LA
+# gaped at KERN 100 — TODO.org "L kerns too little"). seam_gap reads their
+# body edge instead; F/P/T/V/Y need no entry because their counters reach
+# the band and the band already sees the stem. Derived here, pinned to
+# exactly ("L",) by test_footed_set_is_exactly_l.
+_FOOT_BODY: dict[str, float] = {
+    name: body
+    for name in KERNABLE
+    if (body := _body_right(name)) is not None
+    and any(_is_baseline_foot(s, body) for s in DES[name].shapes)
+}
+FOOTED: tuple[str, ...] = tuple(sorted(_FOOT_BODY))
+
 
 def seam_gap(left: str, right: str, y: float) -> float | None:
-    """Air between the pair at height y under default tight advances."""
+    """Air between the pair at height y under default tight advances. For a
+    footed left glyph the body edge reads: min() clamps the foot rows and
+    leaves every other row unchanged."""
     l_extent = _ink_extent(DES[left].shapes, y)
     r_extent = _ink_extent(DES[right].shapes, y)
     if l_extent is None or r_extent is None:
         return None
+    l_right = l_extent[1]
+    body = _FOOT_BODY.get(left)
+    if body is not None:
+        l_right = min(l_right, body)
     # the right glyph's pen position = advance of the LEFT glyph
-    return (DES[left].width - TIGHT_OVERLAP + r_extent[0]) - l_extent[1]
+    return (DES[left].width - TIGHT_OVERLAP + r_extent[0]) - l_right
 
 
 def band_gap(left: str, right: str) -> float | None:

@@ -52,16 +52,17 @@ def test_spaces_never_kern() -> None:
 
 def test_table_invariants() -> None:
     assert len(K.KERN_PAIRS) > 300
-    # exact-count tripwire: the punct-scope fix landed at 2866 (the 1101
-    # blind-spot table byte-identical + 1765 punct pairs), and the prose
-    # claims it exactly (README Spacing/Kerning sections, kern_axis.py
-    # docstring, macro_bootstrap.py header; monolith-spac.html's spans
+    # exact-count tripwire: the L-foot fix landed at 2905 (the 2866
+    # punct-scope table intact + 39 L pairs: 27 letters + 12 punct, with 8
+    # existing L values bumped to -160), and the prose claims it exactly
+    # (README Spacing/Kerning sections, kern_axis.py docstring, macro_bootstrap.py
+    # header; monolith-spac.html's spans
     # regenerate via scripts/extract_html_kern.py). If you retune the
     # metric, update the count in all five places together (this test +
     # the four prose places).
-    assert len(K.KERN_PAIRS) == 2866
+    assert len(K.KERN_PAIRS) == 2905
     letters = {(lg, rg): v for (lg, rg), v in K.KERN_PAIRS.items() if lg in K.BASE and rg in K.BASE}
-    assert len(letters) == 486  # the letter table is untouched by the fix
+    assert len(letters) == 513  # 486 + L's 27 new letter pairs
     for (lg, rg), v in K.KERN_PAIRS.items():
         assert -160 <= v <= -40, (lg, rg, v)
         assert v % 10 == 0, (lg, rg, v)
@@ -74,6 +75,7 @@ def test_table_invariants() -> None:
 def test_punct_breakdown_matches_the_review() -> None:
     # TODO.org "Missing: all punctuation/symbols" closing note: the +1765
     # is 468 BASE+punct, 531 punct+BASE, 391 punct+punct, 375 blind×inked.
+    # The L-foot fix later took BASE+punct to 480 (+12, all in L's row).
     # The total-only tripwire above can't localize a retune; pin the
     # partition so the next metric drift names its quadrant.
     in_base, in_blind, in_inked = set(K.BASE), set(BLIND), set(INKED)
@@ -90,7 +92,7 @@ def test_punct_breakdown_matches_the_review() -> None:
     for lg, rg in K.KERN_PAIRS:
         key = (cls(lg), cls(rg))
         counts[key] = counts.get(key, 0) + 1
-    assert counts.get(("BASE", "INKED"), 0) == 468
+    assert counts.get(("BASE", "INKED"), 0) == 480
     assert counts.get(("INKED", "BASE"), 0) == 531
     assert counts.get(("INKED", "INKED"), 0) == 391
     assert counts.get(("BLIND", "INKED"), 0) + counts.get(("INKED", "BLIND"), 0) == 375
@@ -279,3 +281,52 @@ PRIOR_VALUE_PINS: dict[tuple[str, str], int] = {
 def test_prior_values_smoke_pins() -> None:
     for pair, want in PRIOR_VALUE_PINS.items():
         assert K.KERN_PAIRS.get(pair) == want, (pair, K.KERN_PAIRS.get(pair), want)
+
+
+def test_footed_set_is_exactly_l() -> None:
+    # TODO.org "L kerns too little": L is the only glyph whose baseline-band
+    # edge is an inked bar (the 0-620 foot, y 0-200) protruding past its body
+    # (the 260 stem). Diagonal/tail band edges (backslash, semicolon, comma)
+    # are polys, not bars; percent's bottom box tops out above the body zone;
+    # U/J/Z baseline bars only reach their body width — none may join.
+    assert K.FOOTED == ("L",)
+
+
+def test_l_kerns_by_its_body_edge_like_f() -> None:
+    # Once the foot stops reading the seam, L's profile is F's exactly
+    # (width 620, band edge 260, solid left edge): every pair must agree
+    # in both directions. This IS the fix's contract.
+    for r in K.KERNABLE:
+        assert K.kern_for("L", r) == K.kern_for("F", r), r
+        assert K.kern_for(r, "L") == K.kern_for(r, "F"), r
+
+
+def test_l_row_covers_the_user_report() -> None:
+    # LU/LA/LH gaped at KERN 100 (kern 0 before the fix); the receding
+    # rights L already kerned sit at the MAX_PULL cap, bumped to a
+    # uniform -160. The 27 BASE rights are the TODO's suggested list.
+    for r in (
+        "A", "B", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N",
+        "O", "P", "Q", "R", "S", "U", "X", "Z",
+        "zero", "two", "three", "six", "eight", "nine",
+        "ampersand", "at", "bar", "braceright", "bracketright", "colon",
+        "comma", "dollar", "exclam", "period", "semicolon", "underscore",
+        "J", "W", "one", "bracketleft", "numbersign", "parenright",
+        "percent", "slash",
+    ):
+        assert K.kern_for("L", r) == -160, r
+
+
+def test_l_fix_does_not_drift_other_rows() -> None:
+    # notches stay ignored; digit feet don't exist (five/two analogues are
+    # out of scope); diagonal/tail band edges keep their shipped values;
+    # percent+H stays below MIN_PULL; solid baseline fusion stays fused.
+    assert K.kern_for("E", "A") == 0
+    assert K.kern_for("C", "A") == 0
+    assert K.kern_for("five", "A") == 0
+    assert K.kern_for("two", "A") == 0
+    assert K.kern_for("backslash", "H") == -80
+    assert K.kern_for("semicolon", "W") == -90
+    assert K.kern_for("percent", "H") == 0
+    assert K.kern_for("H", "backslash") == -160
+    assert K.kern_for("H", "period") == 0
