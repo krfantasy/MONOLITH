@@ -129,6 +129,21 @@ def test_kern_axis_kerns_band_inked_punct(vf_path: Path) -> None:
     assert _shaped_positions(vf_path, "H.V", kern=100) == [590, 10, 590]
 
 
+def test_kern_axis_kerns_the_l_row(vf_path: Path) -> None:
+    # TODO.org "L kerns too little": LU/LA read unkerned before the fix (L's
+    # foot hid its 260 stem from the band metric); L now kerns like F — one
+    # -160 seam on the L advance at KERN 100. HU stays solid (baseline -30
+    # fusion, no pair). LT was already at the -160 cap and stays there; its
+    # above-the-foot mid gap is the documented residual the cap accepts.
+    assert _shaped_positions(vf_path, "LU", kern=0) == [590, 590]
+    assert _shaped_positions(vf_path, "LU", kern=100) == [430, 590]
+    assert _shaped_positions(vf_path, "LA", kern=100) == [430, 590]
+    assert _shaped_positions(vf_path, "LH", kern=100) == [430, 590]
+    assert _shaped_positions(vf_path, "HU", kern=100) == [590, 590]
+    assert _shaped_positions(vf_path, "LT", kern=100) == [430, 590]
+    assert _shaped_positions(vf_path, "L.", kern=100) == [430, 170]
+
+
 def test_punct_stays_fused_when_baseline_solid(vf_path: Path) -> None:
     # "correctly absent" (TODO.org bullet 3): a solid stem fuses the
     # baseline-sitting marks at -30; KERN 100 must not move them.
