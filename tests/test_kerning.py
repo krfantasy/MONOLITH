@@ -292,6 +292,16 @@ def test_footed_set_is_exactly_l() -> None:
     assert K.FOOTED == ("L",)
 
 
+def test_body_sampling_starts_above_the_foot() -> None:
+    # BODY_Y0 == 200 is exactly L's foot top: at y == 200 the foot reads
+    # nothing only because _ink_intervals uses strict `>` exclusion.
+    # _body_right must not depend on that single scanline — it samples
+    # strictly above the line so a foot with y1 <= BODY_Y0 never reads
+    # under either `>` or `>=` semantics.
+    assert K._ink_extent(DES["L"].shapes, 200.0) == (0.0, 260.0)
+    assert K._body_right("L") == 260.0
+
+
 def test_l_kerns_by_its_body_edge_like_f() -> None:
     # Once the foot stops reading the seam, L's profile is F's exactly
     # (width 620, band edge 260, solid left edge): every pair must agree

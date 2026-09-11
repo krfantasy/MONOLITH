@@ -106,11 +106,16 @@ def _has_band_ink(name: str) -> bool:
 
 
 def _body_right(name: str) -> float | None:
-    """Widest visible ink right edge from BODY_Y0 up, or None when the glyph
-    has no ink in the body zone (sampled at BAND_STEP like the band)."""
+    """Widest visible ink right edge strictly above BODY_Y0, or None when
+    the glyph has no ink in the body zone (sampled at BAND_STEP like the
+    band). Starts at BODY_Y0 + BAND_STEP, not BODY_Y0: a foot top exactly
+    at BODY_Y0 (L: y1 == 200) reads nothing at y == BODY_Y0 only because
+    _ink_intervals uses strict `>` exclusion. From one step above, a bar
+    with y1 <= BODY_Y0 never reads under either `>` or `>=`, so the body
+    edge is explicit rather than scanline luck."""
     exts = [
         e
-        for y in range(BODY_Y0, 701, BAND_STEP)
+        for y in range(BODY_Y0 + BAND_STEP, 701, BAND_STEP)
         if (e := _ink_extent(DES[name].shapes, float(y))) is not None
     ]
     return max(b for _, b in exts) if exts else None
