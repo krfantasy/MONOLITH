@@ -72,8 +72,9 @@ everywhere. On top of that, the variable font carries a **`KERN` axis
 where each glyph's edge recedes from the vertical — A/V, A/J, T/…; the full
 punctuation set kerns by the same rule, symbols with no baseline ink,
 like quotes and dashes, read in their own band, and a baseline foot wider
-than its body (L) kerns by the body edge above the foot — the foot welds
-the baseline (-190) to close the gap the eye actually reads), from no
+than its body (L) kerns by the body edge above the foot — the mid gap
+closes like F+A (330 → 170) at the cost of a baseline -190 weld unique
+to the foot (the foot tucks under the neighbour) — from no
 kerning at 0 to full kerning at 100:
 
 - **CSS:** `font-variation-settings: "KERN" 100;`

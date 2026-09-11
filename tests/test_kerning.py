@@ -1,5 +1,7 @@
 """Seam-metric kern table invariants."""
 
+import hashlib
+
 from monolith import kerning as K
 from monolith.design import DES, TIGHT_OVERLAP
 
@@ -281,6 +283,16 @@ PRIOR_VALUE_PINS: dict[tuple[str, str], int] = {
 def test_prior_values_smoke_pins() -> None:
     for pair, want in PRIOR_VALUE_PINS.items():
         assert K.KERN_PAIRS.get(pair) == want, (pair, K.KERN_PAIRS.get(pair), want)
+
+
+def test_table_hash_pins_unchanged_values() -> None:
+    # The other 2858 values are claimed byte-identical to the 2866
+    # punct-scope table; the count tripwire, the partition pins, and the
+    # smoke pins above could all miss two non-L pairs swapping values inside
+    # one partition. Pin a full-table hash so any silent drift fails loudly;
+    # a deliberate retune updates it consciously.
+    digest = hashlib.sha256(repr(sorted(K.KERN_PAIRS.items())).encode()).hexdigest()
+    assert digest == "82f468838a958c12a42541f2280aa7290cac308a76b25531da98c0e485f69941"
 
 
 def test_footed_set_is_exactly_l() -> None:

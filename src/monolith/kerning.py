@@ -36,7 +36,7 @@ MAX_PULL = 160.0  # never kern further than this
 MIN_PULL = 40.0  # ignore pairs whose correction would be smaller
 ROUND_TO = 10
 BAND_Y0, BAND_Y1, BAND_STEP = 20, 120, 4  # the baseline band where fusion reads
-BODY_Y0 = 200  # top of the baseline zone: feet and bars live at or below this
+BODY_Y0 = 200  # foot tops sit at or below this; U/J/Z bars and percent's box top at 220 and stay out
 
 
 def _shape_points(shape: Any) -> list[tuple[float, float]]:
@@ -148,8 +148,11 @@ KERNABLE: tuple[str, ...] = tuple(name for name in sorted(DES) if name != "space
 # would read the foot and hide the body edge (L kerned like H, so LU/LA
 # gaped at KERN 100 — TODO.org "L kerns too little"). seam_gap reads their
 # body edge instead; F/P/T/V/Y need no entry because their counters reach
-# the band and the band already sees the stem. Derived here, pinned to
-# exactly ("L",) by test_footed_set_is_exactly_l.
+# the band and the band already sees the stem. five stays out not for lack of
+# a wide bar but because its widest bar R(0,140,620,300) straddles BODY_Y0 —
+# global max 620, so x1 > body is false, and mid-bar y1 300 > BODY_Y0 — so its
+# five-like mid gap stays kern 0 by scope decision, not by accident. Derived
+# here, pinned to exactly ("L",) by test_footed_set_is_exactly_l.
 _FOOT_BODY: dict[str, float] = {
     name: body
     for name in KERNABLE
