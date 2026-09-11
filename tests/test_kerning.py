@@ -302,6 +302,22 @@ def test_body_sampling_starts_above_the_foot() -> None:
     assert K._body_right("L") == 260.0
 
 
+def test_footed_body_is_sample_exact() -> None:
+    # seam_gap's min() clamp is exact only when the sampled body max is the
+    # true body max. L's body is a constant-260 rect stem, so it holds; pin
+    # it at 1-unit resolution so a future diagonal-bodied FOOTED entry that
+    # peaks between 4-unit samples fails loudly instead of over-clamping.
+    for name in K.FOOTED:
+        body = K._FOOT_BODY[name]
+        peaks = [
+            e[1]
+            for y in range(K.BODY_Y0 + 1, 701, 1)
+            if (e := K._ink_extent(DES[name].shapes, float(y))) is not None
+        ]
+        assert peaks, name
+        assert max(peaks) == body, (name, max(peaks), body)
+
+
 def test_l_kerns_by_its_body_edge_like_f() -> None:
     # Once the foot stops reading the seam, L's profile is F's exactly
     # (width 620, band edge 260, solid left edge): every pair must agree

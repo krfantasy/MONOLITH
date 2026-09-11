@@ -162,7 +162,12 @@ FOOTED: tuple[str, ...] = tuple(sorted(_FOOT_BODY))
 def seam_gap(left: str, right: str, y: float) -> float | None:
     """Air between the pair at height y under default tight advances. For a
     footed left glyph the body edge reads: min() clamps the foot rows and
-    leaves every other row unchanged."""
+    leaves every other row unchanged. Exact for rect-bodied L (constant 260
+    stem) — for a future diagonal-bodied footed glyph whose true peak falls
+    between 4-unit samples, the sampled max would sit below the true max and
+    min() could over-clamp an unsampled row. The predicate is generic but the
+    exactness proof is L-specific; test_footed_body_is_sample_exact pins it
+    at 1-unit resolution."""
     l_extent = _ink_extent(DES[left].shapes, y)
     r_extent = _ink_extent(DES[right].shapes, y)
     if l_extent is None or r_extent is None:
