@@ -36,7 +36,9 @@ MAX_PULL = 160.0  # never kern further than this
 MIN_PULL = 40.0  # ignore pairs whose correction would be smaller
 ROUND_TO = 10
 BAND_Y0, BAND_Y1, BAND_STEP = 20, 120, 4  # the baseline band where fusion reads
-BODY_Y0 = 200  # foot tops sit at or below this; U/J/Z bars and percent's box top at 220 and stay out
+BODY_Y0 = (
+    200  # foot tops sit at or below this; U/J/Z bars and percent's box top at 220 and stay out
+)
 
 
 def _shape_points(shape: Any) -> list[tuple[float, float]]:
