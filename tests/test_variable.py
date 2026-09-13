@@ -266,6 +266,7 @@ def test_lowercase_double_encodes_to_caps(vf: TTFont) -> None:
     import string
 
     cmap = vf.getBestCmap()
+    assert cmap is not None
     order = vf.getGlyphOrder()
     for lo in string.ascii_lowercase:
         up = lo.upper()

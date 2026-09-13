@@ -91,7 +91,7 @@ def _ink_extent(shapes: tuple, y: float) -> tuple[float, float] | None:
     return min(a for a, _ in iv), max(b for _, b in iv)
 
 
-def _ink_y_span(name: str) -> tuple[int, int] | None:
+def _ink_y_span(name: str) -> tuple[float, float] | None:
     """(lowest y, highest y) of a glyph's ink, or None for the empty glyph."""
     ys = [py for s in DES[name].shapes for (_, py) in _shape_points(s)]
     return (min(ys), max(ys)) if ys else None

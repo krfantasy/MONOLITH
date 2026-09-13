@@ -42,7 +42,9 @@ class SpecimenRenderer:
         self.font_path = Path(font_path)
         font = TTFont(str(font_path))
         self.gs = font.getGlyphSet()
-        self.cmap = font.getBestCmap()
+        cmap = font.getBestCmap()
+        assert cmap is not None  # every shipped binary has a cmap
+        self.cmap = cmap
         self.order = font.getGlyphOrder()
         self._cache: dict[str, list[list[Point]]] = {}
         self._hb_font: hb.Font | None = None

@@ -144,8 +144,15 @@ axis sheets. Nothing is hand-adjusted.
 ```sh
 uv sync
 uv run pytest          # design invariants + SPAC font + shaping + render smoke test (no Glyphs)
+uv run ruff format --check .
 uv run ruff check .
+uv run ty check
 ```
+
+Run `pre-commit install` once to run `ruff format --check`, `ruff check`
+and `ty check` on every commit (`.pre-commit-config.yaml`; ty's third-party
+stub gaps in fontTools / uharfbuzz are downgraded to visible-but-non-gating
+warnings in `pyproject.toml`).
 
 `tests/test_design.py` guards the invariants that keep the font legible:
 full printable-ASCII coverage, a minimum-thickness tripwire on diagonal
