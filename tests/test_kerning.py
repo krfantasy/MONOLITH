@@ -58,10 +58,9 @@ def test_table_invariants() -> None:
     # punct-scope table intact + 39 L pairs: 27 letters + 12 punct, with 8
     # existing L values bumped to -160), and the prose claims it exactly
     # (README Spacing/Kerning sections, kern_axis.py docstring, macro_bootstrap.py
-    # header; monolith-spac.html's spans
-    # regenerate via scripts/extract_html_kern.py). If you retune the
-    # metric, update the count in all five places together (this test +
-    # the four prose places).
+    # header, and the KERN const baked into index.html by monolith.demo).
+    # If you retune the metric, update the count in all five places together
+    # (this test + the four prose places).
     assert len(K.KERN_PAIRS) == 2905
     letters = {(lg, rg): v for (lg, rg), v in K.KERN_PAIRS.items() if lg in K.BASE and rg in K.BASE}
     assert len(letters) == 513  # 486 + L's 27 new letter pairs

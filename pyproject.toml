@@ -13,6 +13,7 @@ dependencies = [
 
 [project.scripts]
 monolith-specimen = "monolith.cli:main"
+monolith-demo = "monolith.demo:main"
 
 [dependency-groups]
 dev = [

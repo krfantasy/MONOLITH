@@ -139,6 +139,20 @@ so the PNGs show the font's real spacing — default (kern-free) advances,
 `ss01` substitution for the loose sheet, `SPAC`/`KERN` variations for the
 axis sheets. Nothing is hand-adjusted.
 
+**Regenerate the demo page** (no Glyphs needed):
+
+```sh
+uv run monolith-demo            # writes index.html
+```
+
+`index.html` is the showcase page: specimen, a hover-to-inspect glyph grid,
+live SPAC + KERN sliders, and download links to the GitHub releases. It is
+generated from the variable font (glyph names, codepoints, advances, axis
+ranges) and `kerning.py`'s pair table — metadata only, never font bytes:
+the page resolves MONOLITH from the OS-installed font by family name, so
+it needs the font installed (Safari refuses to see installed fonts; the
+page explains that itself). Commit the regenerated file.
+
 ## Development
 
 ```sh
